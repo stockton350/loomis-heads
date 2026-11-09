@@ -59,6 +59,8 @@ h2{font-size:28px;line-height:1.2;margin:.2em 0}
 .tools{display:flex;gap:8px;align-items:center;padding:max(10px,env(safe-area-inset-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--line);flex-wrap:wrap}
 .tools .btn{padding:9px 16px;font-size:15px}
 .tools .btn.sel{background:var(--acc);color:#fff;border-color:var(--acc)}
+.notes{position:absolute;left:10px;right:10px;top:10px;max-height:45%;overflow:auto;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:17px;line-height:1.45;box-shadow:0 4px 18px rgba(0,0,0,.18);z-index:2;touch-action:pan-y}
+.notes b{display:block;font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin-bottom:4px}
 .stage{position:relative;flex:1;background:#fff;touch-action:none;margin:10px;border-radius:10px;overflow:hidden;border:1px solid var(--line)}
 .stage canvas,.stage svg{position:absolute;inset:0;width:100%;height:100%}
 #guide{pointer-events:none;opacity:.22;display:none}
@@ -118,6 +120,7 @@ h2{font-size:28px;line-height:1.2;margin:.2em 0}
   <div class="topbar">
     <button class="btn alt" data-home>&larr; Home</button>
     <span class="sp"></span>
+    <button class="btn alt" id="vtog" style="padding:8px 12px;font-size:15px;margin-right:10px">Sound on</button>
     <div class="bar lbar"><i id="lfill"></i></div>
   </div>
   <div id="s1" class="step">
@@ -158,6 +161,7 @@ h2{font-size:28px;line-height:1.2;margin:.2em 0}
     <button class="btn alt" id="eraser">Eraser</button>
     <button class="btn alt" id="clear">Clear</button>
     <button class="btn alt" id="gtog">Guide</button>
+    <button class="btn alt" id="ntog" aria-expanded="false">Instructions</button>
     <span class="sp"></span>
     <span class="timer" id="timer">10:00</span>
     <button class="btn acc" id="done">Complete lesson</button>
@@ -165,6 +169,7 @@ h2{font-size:28px;line-height:1.2;margin:.2em 0}
   <div class="stage" id="stage">
     <svg id="guide" viewBox="0 0 400 300" preserveAspectRatio="xMidYMid meet"></svg>
     <canvas id="cv"></canvas>
+    <div class="notes" id="notes" hidden><b id="ntitle"></b><span id="nbody"></span></div>
   </div>
 </div>
 <div class="toast" id="toast"></div>
@@ -318,7 +323,28 @@ function reveal(el,ms){
 }
 /* opening animation: driven by a virtual clock so it can pause, scrub and change speed */
 const SPEEDS=[.5,1,1.5,2];
-const A={t:0,playing:false,speed:1,last:0,raf:0,starts:[],els:[],parts:[],total:1};
+const A={t:0,playing:false,speed:1,last:0,raf:0,starts:[],els:[],parts:[],total:1,segs:[],seg:null};
+/* narration: one shared audio element (unlocked by the first tap), recorded clips from audio/ */
+const vox=new Audio();vox.preload="auto";
+let voiceOn=true;try{voiceOn=localStorage.getItem("loomis.voice")!=="off"}catch(e){}
+let MAN={};fetch("audio/manifest.json").then(r=>r.ok?r.json():{}).then(m=>{MAN=m}).catch(()=>{});
+function fnv(s){let h=0x811c9dc5;for(const ch of s){const c=ch.codePointAt(0);h^=c<0x10000?c:0;h=Math.imul(h,0x01000193)>>>0}return h.toString(16).padStart(8,"0")}
+function clipFor(key,text){const e=MAN[key];return e&&text&&e.h===fnv(text)?e:null}
+function voxPlay(file,offsetMs,rate,onend){
+  vox.onended=onend||null;vox.onerror=null;
+  vox.src="audio/"+file;vox.playbackRate=rate||1;
+  if(offsetMs>200){vox.onloadedmetadata=()=>{try{vox.currentTime=offsetMs/1000}catch(e){}}}else vox.onloadedmetadata=null;
+  const p=vox.play();if(p&&p.catch)p.catch(()=>{});
+  return p;
+}
+function voxStop(){vox.onended=null;vox.onloadedmetadata=null;try{vox.pause()}catch(e){}}
+function syncAudio(){
+  if(!A.playing||!voiceOn){if(A.seg){voxStop();A.seg=null}else if(!voiceOn)voxStop();return}
+  const s=A.segs.find(s=>A.t>=s.s&&A.t<s.e)||null;
+  if(s===A.seg)return;
+  A.seg=s;
+  if(s)voxPlay(s.f,A.t-s.s,A.speed);else voxStop();
+}
 try{const s=parseFloat(localStorage.getItem("loomis.speed"));if(SPEEDS.includes(s))A.speed=s}catch(e){}
 const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
 function renderAt(t){
@@ -338,23 +364,38 @@ function setPlaying(on){
   A.playing=on;cancelAnimationFrame(A.raf);
   $("aPlay").innerHTML=on?"&#10074;&#10074;":"&#9654;";
   $("aPlay").setAttribute("aria-label",on?"Pause":"Play");
-  if(on){A.last=performance.now();A.raf=requestAnimationFrame(animTick)}
+  A.seg=null;
+  if(on){A.last=performance.now();syncAudio();A.raf=requestAnimationFrame(animTick)}else voxStop();
 }
 function animTick(ts){
   if(!A.playing)return;
   A.t=Math.min(A.total,A.t+(ts-A.last)*A.speed);A.last=ts;
-  renderAt(A.t);
+  renderAt(A.t);syncAudio();
   if(A.t>=A.total)setPlaying(false);else A.raf=requestAnimationFrame(animTick);
 }
-function stopAnim(){A.playing=false;cancelAnimationFrame(A.raf)}
+function stopAnim(){A.playing=false;cancelAnimationFrame(A.raf);A.seg=null;voxStop()}
 function playDiagram(){
   const L=LESSONS[cur],svg=$("dia");
   svg.setAttribute("style","color:var(--ink)");
   svg.innerHTML=svgFor(L.parts,true);
   A.parts=L.parts;
   A.els=L.parts.map((p,i)=>svg.querySelector(`[data-i="${i}"]`));
-  let g=-1;A.starts=L.parts.map(p=>{if(p.c)g++;return Math.max(g,0)*STEP_MS});
-  A.total=Math.max(...A.starts)+DRAW_MS+1200;
+  /* pace the build by the narration: each caption waits for its clip to finish */
+  A.segs=[];
+  const goal=clipFor(cur+".g",L.goal);
+  let pre=0;
+  if(goal){A.segs.push({s:0,e:goal.d,f:goal.f});pre=goal.d+500}
+  const caps=L.parts.map((p,i)=>p.c?i:-1).filter(i=>i>=0);
+  const gStart=[];let at=pre,lastEnd=pre;
+  caps.forEach((pi,gi)=>{
+    gStart.push(at);
+    const cl=clipFor(cur+".c"+gi,L.parts[pi].c);
+    let gap=STEP_MS;
+    if(cl){A.segs.push({s:at,e:at+cl.d,f:cl.f});gap=Math.max(STEP_MS,cl.d+700);lastEnd=at+cl.d}
+    at+=gap;
+  });
+  let g=-1;A.starts=L.parts.map(p=>{if(p.c)g++;return gStart[Math.max(g,0)]||0});
+  A.total=Math.max(Math.max(...A.starts)+DRAW_MS+1200,lastEnd+800);
   $("aSpeed").innerHTML=A.speed+"&times;";
   A.t=0;renderAt(0);setPlaying(true);
 }
@@ -366,6 +407,7 @@ $("aPlay").onclick=()=>{
 $("aSpeed").onclick=()=>{
   A.speed=SPEEDS[(SPEEDS.indexOf(A.speed)+1)%SPEEDS.length];
   $("aSpeed").innerHTML=A.speed+"&times;";
+  if(A.seg)vox.playbackRate=A.speed;
   try{localStorage.setItem("loomis.speed",A.speed)}catch(e){}
 };
 $("aScrub").oninput=e=>{
@@ -859,6 +901,7 @@ function openLesson(n){
   $("ltitle").textContent=L.name;
   $("lgoal").textContent=L.goal;
   $("chal").innerHTML=`<div class="beat" style="margin:0"><b>So here's today's challenge</b>${L.challenge} ${L.outro}</div>`;
+  $("ntitle").textContent="Lesson "+n+" challenge";$("nbody").textContent=L.challenge;
   $("gsvg").innerHTML=guideMarkup(n);$("gsvg").setAttribute("style","opacity:.55");
   show("lesson");go(0);
 }
@@ -876,10 +919,9 @@ function go(k){
   $("s2").style.display=(k>=1&&k<=C)?"block":"none";
   $("s3").style.display=k===last?"block":"none";
   $("lfill").style.width=(k/last*100)+"%";
-  stopAnim();
+  stopAnim();stopSpeak();
   if(k===0)playDiagram();
-  if(k>=1&&k<=C)renderCard(L.cards[k-1]);
-  stopSpeak();
+  if(k>=1&&k<=C){renderCard(L.cards[k-1]);if(voiceOn)playCard()}
   window.scrollTo(0,0);
 }
 document.querySelectorAll("[data-next]").forEach(b=>b.onclick=()=>go(step+1));
@@ -889,26 +931,30 @@ $("replay").onclick=playDiagram;
 /* ---------- read aloud ---------- */
 let speaking=false;
 try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}catch(e){}
-let voiceAudio=null,manifestP=null;
-function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}if(voiceAudio){voiceAudio.onended=voiceAudio.onerror=null;voiceAudio.pause();voiceAudio=null}speaking=false;$("speak").innerHTML="&#9654; Listen"}
-function fnv(s){let h=0x811c9dc5;for(const ch of s){const c=ch.codePointAt(0);h^=c<0x10000?c:0;h=Math.imul(h,0x01000193)>>>0}return h.toString(16).padStart(8,"0")}
-function audioManifest(){return manifestP||(manifestP=fetch("audio/manifest.json").then(r=>r.ok?r.json():{}).catch(()=>({})))}
-async function playRecorded(){
-  const m=await audioManifest(),e=m[cur+"."+(step-1)],txt=$("ctext").textContent;
-  if(!e||e.h!==fnv(txt))return false;
-  const a=new Audio("audio/"+e.f);
-  voiceAudio=a;a.onended=()=>stopSpeak();a.onerror=()=>{if(voiceAudio===a){stopSpeak();speakBrowser()}};
-  try{await a.play()}catch(err){voiceAudio=null;return false}
+function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}voxStop();speaking=false;$("speak").innerHTML="&#9654; Listen"}
+function playCard(){
+  const e=clipFor(cur+"."+(step-1),$("ctext").textContent);
+  if(!e)return false;
+  speaking=true;$("speak").innerHTML="&#9632; Stop";
+  const p=voxPlay(e.f,0,1,()=>stopSpeak());
+  if(p&&p.catch)p.catch(()=>stopSpeak());
   return true;
 }
-$("speak").onclick=async()=>{
+$("speak").onclick=()=>{
   if(speaking){stopSpeak();return}
-  speaking=true;$("speak").innerHTML="&#9632; Stop";
-  const k=step;
-  if(await playRecorded())return;
-  if(!speaking||k!==step)return;
-  speaking=false;speakBrowser();
+  if(!playCard())speakBrowser();
 };
+$("ntog").onclick=()=>{const n=$("notes");n.hidden=!n.hidden;$("ntog").classList.toggle("sel",!n.hidden);$("ntog").setAttribute("aria-expanded",String(!n.hidden))};
+function setVoiceBtn(){$("vtog").textContent=voiceOn?"Sound on":"Sound off";$("vtog").setAttribute("aria-pressed",voiceOn)}
+$("vtog").onclick=()=>{
+  voiceOn=!voiceOn;try{localStorage.setItem("loomis.voice",voiceOn?"on":"off")}catch(e){}
+  setVoiceBtn();
+  if(!voiceOn){voxStop();stopSpeak();A.seg=null}
+  else if(step===0)syncAudio();
+  else if(step<=LESSONS[cur].cards.length)playCard();
+};
+setVoiceBtn();
+document.addEventListener("visibilitychange",()=>{if(document.hidden){if(A.playing)setPlaying(false);stopSpeak()}});
 function speakBrowser(){
   if(!("speechSynthesis" in window)){toast("This browser can't read aloud.");return}
   if(speaking){stopSpeak();return}
