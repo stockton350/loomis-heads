@@ -889,8 +889,27 @@ $("replay").onclick=playDiagram;
 /* ---------- read aloud ---------- */
 let speaking=false;
 try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}catch(e){}
-function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}speaking=false;$("speak").innerHTML="&#9654; Listen"}
-$("speak").onclick=()=>{
+let voiceAudio=null,manifestP=null;
+function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}if(voiceAudio){voiceAudio.onended=voiceAudio.onerror=null;voiceAudio.pause();voiceAudio=null}speaking=false;$("speak").innerHTML="&#9654; Listen"}
+function fnv(s){let h=0x811c9dc5;for(const ch of s){const c=ch.codePointAt(0);h^=c<0x10000?c:0;h=Math.imul(h,0x01000193)>>>0}return h.toString(16).padStart(8,"0")}
+function audioManifest(){return manifestP||(manifestP=fetch("audio/manifest.json").then(r=>r.ok?r.json():{}).catch(()=>({})))}
+async function playRecorded(){
+  const m=await audioManifest(),e=m[cur+"."+(step-1)],txt=$("ctext").textContent;
+  if(!e||e.h!==fnv(txt))return false;
+  const a=new Audio("audio/"+e.f);
+  voiceAudio=a;a.onended=()=>stopSpeak();a.onerror=()=>{if(voiceAudio===a){stopSpeak();speakBrowser()}};
+  try{await a.play()}catch(err){voiceAudio=null;return false}
+  return true;
+}
+$("speak").onclick=async()=>{
+  if(speaking){stopSpeak();return}
+  speaking=true;$("speak").innerHTML="&#9632; Stop";
+  const k=step;
+  if(await playRecorded())return;
+  if(!speaking||k!==step)return;
+  speaking=false;speakBrowser();
+};
+function speakBrowser(){
   if(!("speechSynthesis" in window)){toast("This browser can't read aloud.");return}
   if(speaking){stopSpeak();return}
   const u=new SpeechSynthesisUtterance($("ctext").textContent);
