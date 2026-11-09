@@ -888,13 +888,19 @@ $("replay").onclick=playDiagram;
 
 /* ---------- read aloud ---------- */
 let speaking=false;
+try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}catch(e){}
 function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}speaking=false;$("speak").innerHTML="&#9654; Listen"}
 $("speak").onclick=()=>{
   if(!("speechSynthesis" in window)){toast("This browser can't read aloud.");return}
   if(speaking){stopSpeak();return}
   const u=new SpeechSynthesisUtterance($("ctext").textContent);
-  u.rate=.95;u.onend=()=>stopSpeak();
-  speechSynthesis.cancel();speechSynthesis.speak(u);speaking=true;$("speak").innerHTML="&#9632; Stop";
+  const vs=speechSynthesis.getVoices(),v=vs.find(x=>/^en(-|_)US/i.test(x.lang)&&/enhanced|premium|samantha|google us/i.test(x.name))||vs.find(x=>/^en(-|_)US/i.test(x.lang))||vs.find(x=>/^en/i.test(x.lang));
+  if(v){u.voice=v;u.lang=v.lang}else u.lang="en-US";
+  u.rate=.95;u.volume=1;
+  u.onend=()=>stopSpeak();
+  u.onerror=e=>{stopSpeak();if(e.error!=="canceled"&&e.error!=="interrupted")toast("Speech failed: "+(e.error||"unknown"))};
+  speechSynthesis.resume();speechSynthesis.speak(u);speaking=true;$("speak").innerHTML="&#9632; Stop";
+  setTimeout(()=>{if(speaking&&!speechSynthesis.speaking&&!speechSynthesis.pending){stopSpeak();toast("No sound? Check the silent switch and volume.")}},1500);
 };
 
 /* ---------- canvas ---------- */
