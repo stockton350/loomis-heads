@@ -8,4 +8,4 @@ The lessons follow the order and principles of Andrew Loomis's *Drawing the Head
 - Use Export backup on the home screen to save everything to a file.
 - Add to Home Screen in Safari to run it like an app.
 
-Status: lessons 1 and 2 are written. The rest are in progress.
+Status: lessons 1 to 15 are written (construction, planes and types). The rest are in progress.
