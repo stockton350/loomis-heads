@@ -75,6 +75,9 @@ h2{font-size:28px;line-height:1.2;margin:.2em 0}
 #s2 .btn{padding:12px 16px;font-size:16px;white-space:nowrap}
 .ctext{font-size:22px;line-height:1.5;margin:14px 2px 20px;min-height:5.5em}
 .draw-path{stroke-dasharray:1;stroke-dashoffset:1}
+.ctl{display:flex;align-items:center;gap:10px;margin:10px 0 4px}
+.ctl .btn{padding:10px 0;min-width:56px;font-size:18px;text-align:center}
+.ctl input[type=range]{flex:1;min-width:0;accent-color:var(--acc);height:32px}
 </style>
 </head>
 <body>
@@ -123,6 +126,11 @@ h2{font-size:28px;line-height:1.2;margin:.2em 0}
     <p class="goal" id="lgoal"></p>
     <div class="diagram"><svg id="dia" viewBox="0 0 400 300" role="img" aria-label="Animated construction of the ball"></svg></div>
     <div class="cap" id="dcap"></div>
+    <div class="ctl">
+      <button class="btn alt" id="aPlay" aria-label="Pause">&#10074;&#10074;</button>
+      <input type="range" id="aScrub" min="0" max="1000" value="0" aria-label="Animation position">
+      <button class="btn alt" id="aSpeed" aria-label="Speed">1&times;</button>
+    </div>
     <div class="row"><button class="btn alt" id="replay">Replay</button><span class="sp"></span><button class="btn" data-next>Next</button></div>
   </div>
   <div id="s2" class="step" style="display:none">
@@ -308,19 +316,62 @@ function reveal(el,ms){
   if(el.dataset.fade){el.style.transition="opacity .9s";el.style.opacity=el.dataset.o||1}
   else{el.style.transition="stroke-dashoffset "+ms+"ms ease";el.style.strokeDashoffset="0"}
 }
-let animT=[];
+/* opening animation: driven by a virtual clock so it can pause, scrub and change speed */
+const SPEEDS=[.5,1,1.5,2];
+const A={t:0,playing:false,speed:1,last:0,raf:0,starts:[],els:[],parts:[],total:1};
+try{const s=parseFloat(localStorage.getItem("loomis.speed"));if(SPEEDS.includes(s))A.speed=s}catch(e){}
+const ease=k=>k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;
+function renderAt(t){
+  A.parts.forEach((p,i)=>{
+    const el=A.els[i];if(!el)return;
+    const fade=!!el.dataset.fade;
+    const k=Math.max(0,Math.min(1,(t-A.starts[i])/(fade?900:DRAW_MS)));
+    if(fade)el.style.opacity=(+el.dataset.o||1)*k;
+    else el.style.strokeDashoffset=1-ease(k);
+  });
+  let cap="";
+  A.parts.forEach((p,i)=>{if(p.c&&t>=A.starts[i])cap=p.c});
+  if($("dcap").textContent!==cap)$("dcap").textContent=cap;
+  $("aScrub").value=Math.round(t/A.total*1000);
+}
+function setPlaying(on){
+  A.playing=on;cancelAnimationFrame(A.raf);
+  $("aPlay").innerHTML=on?"&#10074;&#10074;":"&#9654;";
+  $("aPlay").setAttribute("aria-label",on?"Pause":"Play");
+  if(on){A.last=performance.now();A.raf=requestAnimationFrame(animTick)}
+}
+function animTick(ts){
+  if(!A.playing)return;
+  A.t=Math.min(A.total,A.t+(ts-A.last)*A.speed);A.last=ts;
+  renderAt(A.t);
+  if(A.t>=A.total)setPlaying(false);else A.raf=requestAnimationFrame(animTick);
+}
+function stopAnim(){A.playing=false;cancelAnimationFrame(A.raf)}
 function playDiagram(){
-  animT.forEach(clearTimeout);animT=[];
   const L=LESSONS[cur],svg=$("dia");
   svg.setAttribute("style","color:var(--ink)");
   svg.innerHTML=svgFor(L.parts,true);
-  $("dcap").textContent="";
-  let g=-1;
-  L.parts.forEach((p,i)=>{
-    if(p.c)g++;
-    animT.push(setTimeout(()=>{reveal(svg.querySelector(`[data-i="${i}"]`),DRAW_MS);if(p.c)$("dcap").textContent=p.c},Math.max(g,0)*STEP_MS));
-  });
+  A.parts=L.parts;
+  A.els=L.parts.map((p,i)=>svg.querySelector(`[data-i="${i}"]`));
+  let g=-1;A.starts=L.parts.map(p=>{if(p.c)g++;return Math.max(g,0)*STEP_MS});
+  A.total=Math.max(...A.starts)+DRAW_MS+1200;
+  $("aSpeed").innerHTML=A.speed+"&times;";
+  A.t=0;renderAt(0);setPlaying(true);
 }
+$("aPlay").onclick=()=>{
+  if(A.playing){setPlaying(false);return}
+  if(A.t>=A.total)A.t=0;
+  setPlaying(true);
+};
+$("aSpeed").onclick=()=>{
+  A.speed=SPEEDS[(SPEEDS.indexOf(A.speed)+1)%SPEEDS.length];
+  $("aSpeed").innerHTML=A.speed+"&times;";
+  try{localStorage.setItem("loomis.speed",A.speed)}catch(e){}
+};
+$("aScrub").oninput=e=>{
+  setPlaying(false);
+  A.t=+e.target.value/1000*A.total;renderAt(A.t);
+};
 function guideMarkup(n){
   const L=LESSONS[n];
   if(L.guideMk)return L.guideMk();
@@ -825,7 +876,7 @@ function go(k){
   $("s2").style.display=(k>=1&&k<=C)?"block":"none";
   $("s3").style.display=k===last?"block":"none";
   $("lfill").style.width=(k/last*100)+"%";
-  animT.forEach(clearTimeout);
+  stopAnim();
   if(k===0)playDiagram();
   if(k>=1&&k<=C)renderCard(L.cards[k-1]);
   stopSpeak();
