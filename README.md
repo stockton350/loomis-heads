@@ -8,4 +8,4 @@ The lessons follow the order and principles of Andrew Loomis's *Drawing the Head
 - Use Export backup on the home screen to save everything to a file.
 - Add to Home Screen in Safari to run it like an app.
 
-Status: lessons 1 to 15 are written (construction, planes and types). The rest are in progress.
+Status: all 50 lessons are written. Each has a narrated opening animation, five or six short cards, a challenge, and a drawing canvas. Narration is recorded with Kokoro (voice am_michael) and stored in the audio folder.

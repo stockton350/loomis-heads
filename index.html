@@ -893,6 +893,1044 @@ const TXr=`font-family="Georgia,serif" font-size="17" fill="currentColor" text-a
     ()=>svgFor(FH(75,150,58,{w:2,a:1.3,b:.9,c:.9}).hair?[].concat(...[FH(75,150,58,{w:2,a:1.3,b:.9,c:.9}),FH(200,150,58,{w:2,a:.8,b:1.1,c:1.1}),FH(325,150,58,{w:2,a:1,b:.8,c:1.4})].map(h=>[h.ball,h.mid,h.brow,h.hair,h.nb,h.chin])):[],false));
 })();
 
+/*@@batch3*/
+/* ===================== batch 3: toolkit for lessons 16-50 ===================== */
+const CAP=(p,c)=>Object.assign({},p,{c:c});
+const LN=(d,tag,o)=>P(d,"",Object.assign({tag:tag},o||{}));
+const ELL=(x,y,rx,ry)=>`M ${f1(x-rx)} ${f1(y)} a ${f1(rx)} ${f1(ry)} 0 1 0 ${f1(2*rx)} 0 a ${f1(rx)} ${f1(ry)} 0 1 0 ${f1(-2*rx)} 0`;
+const lens2=(x,y,w,h)=>`M ${f1(x-w)} ${f1(y)} q ${f1(w)} ${f1(-h)} ${f1(2*w)} 0 q ${f1(-w)} ${f1(h)} ${f1(-2*w)} 0`;
+function arcPts(a,b,n){const o=[];for(let i=0;i<=n;i++){const t=i/n;const v=[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];const m=Math.hypot(v[0],v[1],v[2]);o.push([v[0]/m,v[1]/m,v[2]/m])}return o}
+// muscles drawn on a front head (FH geometry)
+function MUS(cx,cy,r){
+  const u=r/2,ch=cy+r,my=cy+.7*r;const o={};
+  o.masseter=LN(ELL(cx-.8*r,cy+.58*r,.09*r,.2*r)+" "+ELL(cx+.8*r,cy+.58*r,.09*r,.2*r),"masseter");
+  o.temporal=LN(`M ${cx-.86*r} ${cy-.05*r} Q ${cx-.96*r} ${cy-.6*r} ${cx-.55*r} ${cy-.86*r} M ${cx-.84*r} ${cy-.1*r} Q ${cx-.8*r} ${cy-.5*r} ${cx-.56*r} ${cy-.8*r} M ${cx+.86*r} ${cy-.05*r} Q ${cx+.96*r} ${cy-.6*r} ${cx+.55*r} ${cy-.86*r} M ${cx+.84*r} ${cy-.1*r} Q ${cx+.8*r} ${cy-.5*r} ${cx+.56*r} ${cy-.8*r}`,"temporal",{o:.7});
+  o.orbEye=LN(ELL(cx-.38*r,cy+.17*r,.27*r,.18*r)+" "+ELL(cx+.38*r,cy+.17*r,.27*r,.18*r),"orbEye");
+  o.orbMouth=LN(ELL(cx,my,.37*r,.2*r),"orbMouth");
+  o.happy=LN(`M ${cx-.62*r} ${cy+.3*r} L ${cx-.34*r} ${my-.02*r} M ${cx+.62*r} ${cy+.3*r} L ${cx+.34*r} ${my-.02*r}`,"happy",{col:ACC,w:3});
+  o.unhappy=LN(`M ${cx-.16*r} ${cy+.38*r} Q ${cx-.38*r} ${cy+.66*r} ${cx-.2*r} ${ch-.03*r} M ${cx+.16*r} ${cy+.38*r} Q ${cx+.38*r} ${cy+.66*r} ${cx+.2*r} ${ch-.03*r}`,"unhappy",{col:ACC,w:3});
+  o.wrinkleBrow=LN(`M ${cx-.1*r} ${cy-.03*r} L ${cx-.22*r} ${cy-.2*r} M ${cx+.1*r} ${cy-.03*r} L ${cx+.22*r} ${cy-.2*r} M ${cx-.4*r} ${cy-.3*r} Q ${cx} ${cy-.38*r} ${cx+.4*r} ${cy-.3*r} M ${cx-.34*r} ${cy-.45*r} Q ${cx} ${cy-.53*r} ${cx+.34*r} ${cy-.45*r}`,"wrinkleBrow",{col:ACC,w:2.4});
+  o.chinW=LN(`M ${cx-.05*r} ${ch-.2*r} l ${-.04*r} ${.12*r} M ${cx+.05*r} ${ch-.2*r} l ${.04*r} ${.12*r}`,"chinW",{col:ACC,w:2.6});
+  o.scm=LN(`M ${cx-.82*r} ${cy+.62*r} L ${cx-.06*r} ${cy+1.78*r} M ${cx+.82*r} ${cy+.62*r} L ${cx+.06*r} ${cy+1.78*r}`,"scm",{col:ACC,w:3});
+  o.neck=LN(`M ${cx-.42*r} ${ch-.12*r} L ${cx-.46*r} ${cy+1.75*r} M ${cx+.42*r} ${ch-.12*r} L ${cx+.46*r} ${cy+1.75*r}`,"neck");
+  return o;
+}
+// features for an expression on a front head
+function EX(cx,cy,r,kind){
+  const my=cy+.7*r,ey=cy+.17*r,by=cy-.06*r;
+  const brow=(x,tilt,inner)=>`M ${f1(x-.22*r)} ${f1(by+(inner<0?tilt:-tilt))} Q ${f1(x)} ${f1(by-.07*r)} ${f1(x+.22*r)} ${f1(by+(inner<0?-tilt:tilt))}`;
+  const o={extra:[]};
+  let eh=.09,bt=0,mouth,brows;
+  const bL=(t)=>`M ${f1(cx-.6*r)} ${f1(by-t*r)} Q ${f1(cx-.38*r)} ${f1(by-.07*r-.5*t*r)} ${f1(cx-.14*r)} ${f1(by+t*r)}`;
+  const bR=(t)=>`M ${f1(cx+.6*r)} ${f1(by-t*r)} Q ${f1(cx+.38*r)} ${f1(by-.07*r-.5*t*r)} ${f1(cx+.14*r)} ${f1(by+t*r)}`;
+  if(kind==="relaxed"){brows=bL(0)+" "+bR(0);mouth=`M ${cx-.22*r} ${my} q ${.22*r} ${.06*r} ${.44*r} 0`}
+  else if(kind==="smile"){eh=.06;brows=bL(-.02)+" "+bR(-.02);mouth=`M ${cx-.3*r} ${my-.05*r} Q ${cx} ${my+.17*r} ${cx+.3*r} ${my-.05*r}`;
+    o.extra.push(LN(`M ${cx-.4*r} ${my-.06*r} q ${-.06*r} ${.1*r} ${.02*r} ${.2*r} M ${cx+.4*r} ${my-.06*r} q ${.06*r} ${.1*r} ${-.02*r} ${.2*r}`,"crease"),
+      LN(`M ${cx-.55*r} ${ey+.02*r} l ${-.07*r} ${.03*r} M ${cx+.55*r} ${ey+.02*r} l ${.07*r} ${.03*r}`,"crease"))}
+  else if(kind==="laugh"){eh=.05;brows=bL(-.03)+" "+bR(-.03);
+    mouth=`M ${cx-.34*r} ${my-.08*r} Q ${cx} ${my+.06*r} ${cx+.34*r} ${my-.08*r} Q ${cx+.24*r} ${my+.36*r} ${cx} ${my+.38*r} Q ${cx-.24*r} ${my+.36*r} ${cx-.34*r} ${my-.08*r}`;
+    o.extra.push(LN(`M ${cx-.26*r} ${my-.02*r} Q ${cx} ${my+.1*r} ${cx+.26*r} ${my-.02*r}`,"teeth"),
+      LN(`M ${cx-.44*r} ${my-.08*r} q ${-.06*r} ${.1*r} ${.02*r} ${.22*r} M ${cx+.44*r} ${my-.08*r} q ${.06*r} ${.1*r} ${-.02*r} ${.22*r}`,"crease"))}
+  else if(kind==="worry"){brows=bL(.09)+" "+bR(.09);mouth=`M ${cx-.2*r} ${my+.03*r} q ${.2*r} ${-.05*r} ${.4*r} 0`;
+    o.extra.push(LN(`M ${cx-.3*r} ${by-.2*r} q ${.3*r} ${-.06*r} ${.6*r} 0`,"crease",{o:.7}))}
+  else if(kind==="frown"){brows=bL(-.1)+" "+bR(-.1);mouth=`M ${cx-.26*r} ${my+.06*r} Q ${cx} ${my-.1*r} ${cx+.26*r} ${my+.06*r}`;
+    o.extra.push(LN(`M ${cx-.04*r} ${by-.1*r} v ${.14*r} M ${cx+.04*r} ${by-.1*r} v ${.14*r}`,"crease"))}
+  else if(kind==="anger"){eh=.06;brows=bL(-.15)+" "+bR(-.15);mouth=`M ${cx-.28*r} ${my+.02*r} L ${cx+.28*r} ${my+.02*r} M ${cx-.22*r} ${my+.1*r} Q ${cx} ${my+.04*r} ${cx+.22*r} ${my+.1*r}`;
+    o.extra.push(LN(`M ${cx-.04*r} ${by-.12*r} v ${.16*r} M ${cx+.04*r} ${by-.12*r} v ${.16*r}`,"crease"))}
+  else if(kind==="pout"){brows=bL(0)+" "+bR(0);mouth=`M ${cx-.16*r} ${my} Q ${cx} ${my-.08*r} ${cx+.16*r} ${my} Q ${cx} ${my+.16*r} ${cx-.16*r} ${my}`}
+  else if(kind==="open"){brows=bL(.03)+" "+bR(.03);mouth=`M ${cx-.2*r} ${my} Q ${cx} ${my-.08*r} ${cx+.2*r} ${my} Q ${cx+.14*r} ${my+.3*r} ${cx} ${my+.32*r} Q ${cx-.14*r} ${my+.3*r} ${cx-.2*r} ${my}`}
+  o.brows=LN(brows,"brows");
+  o.eyes=LN(lens2(cx-.38*r,ey,.13*r,eh*r)+" "+lens2(cx+.38*r,ey,.13*r,eh*r),"eyes");
+  o.mouth=LN(mouth,"mouth");
+  return o;
+}
+// aging marks: stage 1 middle, 2 old
+function AGE(cx,cy,r,stage){
+  const my=cy+.7*r,ey=cy+.17*r,o=[];
+  const s=stage;
+  o.push(LN(`M ${cx-.3*r} ${cy-.4*r} q ${.3*r} ${-.04*r} ${.6*r} 0`,"forehead",{o:.6}));
+  if(s>=1){o.push(LN(`M ${cx-.5*r} ${ey+.14*r} q ${.12*r} ${.08*r} ${.24*r} 0 M ${cx+.26*r} ${ey+.14*r} q ${.12*r} ${.08*r} ${.24*r} 0`,"pouch"))}
+  o.push(LN(`M ${cx-.2*r} ${cy+.42*r} Q ${cx-.5*r} ${my-.02*r} ${cx-.42*r} ${my+.2*r} M ${cx+.2*r} ${cy+.42*r} Q ${cx+.5*r} ${my-.02*r} ${cx+.42*r} ${my+.2*r}`,"mouthline"));
+  if(s>=2){o.push(LN(`M ${cx-.78*r} ${cy+.4*r} q ${.12*r} ${.3*r} ${.04*r} ${.55*r} M ${cx+.78*r} ${cy+.4*r} q ${-.12*r} ${.3*r} ${-.04*r} ${.55*r}`,"sag"),
+    LN(`M ${cx-.3*r} ${cy-.5*r} q ${.3*r} ${-.04*r} ${.6*r} 0 M ${cx-.12*r} ${cy-.1*r} v ${-.1*r} M ${cx+.12*r} ${cy-.1*r} v ${-.1*r}`,"forehead2"),
+    LN(`M ${cx-.62*r} ${ey} l ${-.08*r} ${-.03*r} M ${cx-.62*r} ${ey+.04*r} l ${-.08*r} ${.03*r} M ${cx+.62*r} ${ey} l ${.08*r} ${-.03*r} M ${cx+.62*r} ${ey+.04*r} l ${.08*r} ${.03*r}`,"crow"))}
+  return o;
+}
+// side head: profile with ear, brow, nose base lines (cx,cy = ball center)
+function SIDEH(cx,cy,r,o){
+  o=o||{};const out=[];
+  out.push(LN(ELL(cx,cy,r,r),"ball",{w:2.5}));
+  out.push(LN(`M ${cx+.62*r} ${cy-.5*r} L ${cx+.9*r} ${cy-.02*r} L ${cx+.86*r} ${cy+.12*r} L ${cx+1.12*r} ${cy+.46*r} L ${cx+.88*r} ${cy+.5*r} L ${cx+.92*r} ${cy+.64*r} L ${cx+.86*r} ${cy+.74*r} L ${cx+.9*r} ${cy+.86*r} L ${cx+.78*r} ${cy+1.0*r} L ${cx+.4*r} ${cy+1.04*r} L ${cx+.02*r} ${cy+.78*r} L ${cx-.14*r} ${cy+.46*r}`,"profile"));
+  out.push(LN(`M ${cx-.12*r} ${cy+.08*r} Q ${cx-.3*r} ${cy+.22*r} ${cx-.1*r} ${cy+.5*r} Q ${cx+.02*r} ${cy+.2*r} ${cx-.12*r} ${cy+.08*r}`,"ear"));
+  out.push(LN(`M ${cx-.9*r} ${cy} L ${cx+.9*r} ${cy}`,"brow",{col:ACC,w:2}));
+  out.push(LN(`M ${cx+.62*r} ${cy-.5*r} L ${cx+.1*r} ${cy-.5*r}`,"hairline",{o:.6}));
+  if(o.line)out.push(LN(`M ${cx+.9*r} ${cy+.5*r} L ${cx-.3*r} ${cy+.5*r}`,"nline",{col:ACC,w:2.2,dash:"5 5"}));
+  out.push(LN(`M ${cx+.5*r} ${cy+.1*r} q ${.1*r} ${-.05*r} ${.2*r} 0`,"eye"));
+  return out;
+}
+// eye: ball with lids
+function EYE(cx,cy,r,o){
+  o=o||{};const out=[];
+  out.push(LN(ELL(cx,cy,r,r),"ball",{w:2.5,o:o.dim?.5:1}));
+  const ix=cx+(o.look||0)*r,iy=cy;
+  out.push(LN(ELL(ix,iy,.34*r,.34*r),"iris",{col:ACC}));
+  out.push({k:"d",cx:ix,cy:iy,r:.12*r,col:"currentColor",tag:"pupil"});
+  out.push(LN(`M ${cx-.92*r} ${cy+.05*r} Q ${cx} ${cy-.9*r} ${cx+.92*r} ${cy+.05*r}`,"lids",{w:3}));
+  out.push(LN(`M ${cx-.92*r} ${cy+.05*r} Q ${cx} ${cy+.62*r} ${cx+.92*r} ${cy+.05*r}`,"lids",{w:3}));
+  return out;
+}
+// light on a sphere: arcs on the shadow side
+function SHADE(cx,cy,r,o){
+  o=o||{};const out=[];
+  out.push(LN(ELL(cx,cy,r,r),"ball",{w:2.6}));
+  const arc=(a)=>{const ar=a*D2R,x=cx+r*Math.cos(ar),y1=cy-r*Math.sin(ar),y2=cy+r*Math.sin(ar);return `M ${f1(x)} ${f1(y1)} Q ${f1(x-.34*r)} ${f1(cy)} ${f1(x)} ${f1(y2)}`};
+  let half="",shad="";
+  for(let a=76;a>52;a-=8)half+=arc(a)+" ";
+  for(let a=50;a>14;a-=5)shad+=arc(a)+" ";
+  out.push(LN(half,"half",{w:1.4,o:.7}));
+  out.push(LN(shad,"shadow",{w:1.5}));
+  return out;
+}
+// hatching strokes inside a quad (parallelogram: origin x,y; edge vectors a,b); strokes run along a
+function HATCH(x,y,ax,ay,bx,by,n,tag,o){
+  let d="";for(let i=1;i<=n;i++){const t=i/(n+1);d+=`M ${f1(x+bx*t)} ${f1(y+by*t)} l ${f1(ax)} ${f1(ay)} `}
+  return LN(d,tag,Object.assign({w:1.5},o||{}));
+}
+// outline of a quad
+const QUAD=(x,y,ax,ay,bx,by,tag,o)=>LN(`M ${f1(x)} ${f1(y)} l ${f1(ax)} ${f1(ay)} l ${f1(bx)} ${f1(by)} l ${f1(-ax)} ${f1(-ay)} z`,tag,o);
+// a woman's front head: same spacing as FH, softer jaw, fuller lips, brows a little higher
+function FF(cx,cy,r,o){
+  o=o||{};const h=FH(cx,cy,r,o),u=r/2,ch=cy+(1+1)*u;
+  h.jaw=LN(`M ${cx-.82*r} ${cy+.22*r} C ${cx-.8*r} ${cy+.82*r} ${cx-.42*r} ${ch+.02*r} ${cx} ${ch+.04*r} C ${cx+.42*r} ${ch+.02*r} ${cx+.8*r} ${cy+.82*r} ${cx+.82*r} ${cy+.22*r}`,"jaw");
+  h.eyes=LN(lens2(cx-.38*r,cy+.17*r,.14*r,.1*r)+" "+lens2(cx+.38*r,cy+.17*r,.14*r,.1*r),"eyes");
+  h.brows=LN(`M ${cx-.58*r} ${cy+.04*r} Q ${cx-.38*r} ${cy-.1*r} ${cx-.16*r} ${cy+.02*r} M ${cx+.58*r} ${cy+.04*r} Q ${cx+.38*r} ${cy-.1*r} ${cx+.16*r} ${cy+.02*r}`,"brows");
+  const my=cy+.7*r;
+  h.mouth=LN(`M ${cx-.22*r} ${my} Q ${cx-.1*r} ${my-.07*r} ${cx} ${my-.03*r} Q ${cx+.1*r} ${my-.07*r} ${cx+.22*r} ${my} Q ${cx} ${my+.12*r} ${cx-.22*r} ${my}`,"mouth");
+  h.nose=LN(`M ${cx-.1*r} ${cy+.48*r} q ${.1*r} ${.07*r} ${.2*r} 0`,"nose");
+  return h;
+}
+const SHOW=(h,names)=>names.map(n=>h[n]).filter(Boolean);
+
+/* ===================== lesson 16 ===================== */
+(function(){
+  const h=FH(200,150,90),s=SKULL(200,140,84);
+  const cheek=LN("M 124 176 q 10 22 40 32 M 276 176 q -10 22 -40 32","cheek"),
+    crease=LN("M 176 178 q -16 26 -4 52 M 224 178 q 16 26 4 52","crease"),
+    bag=LN("M 148 162 q 12 9 28 0 M 224 162 q 12 9 28 0","bag"),
+    bone=LN("M 118 148 q 4 26 30 36 M 282 148 q -4 26 -30 36","bone",{col:ACC});
+  const feat=[h.ball,h.mid,h.brow,h.eyes,h.nose,h.mouth,h.jaw];
+  const cards=[
+    prob("You copy the outline and still get nobody. All the parts are there, and the face has no character.",null),
+    why("Character lives in the bones and in the flesh over them. The outline records neither. Chasing every square inch of surface loses the whole.",null),
+  ].concat(fixes([
+    ["Once you know the lines of construction, you can read a face quickly. Look first for the bony shapes and the location of the features.",[s.cranium,s.sides,s.brow,s.sockets,s.nose,s.jaw],"sockets"],
+    ["Then look for the flesh formations: in the cheeks, around the mouth, and around the eyes. They are easy to indicate.",feat.concat([cheek,crease,bag]),["cheek","crease","bag"]],
+    ["Are the cheekbones prominent? Is there a shadow shape under them? Then the nose and the nostrils, the lips, and the creases between the lips and the cheeks.",feat.concat([cheek,crease,bone]),["bone","crease"]],
+    ["Follow the shapes down into the chin, and along the jaw line.",feat.concat([cheek,crease]),"jaw"],
+    ["These general marks, and the whole shape of the head, matter more than a photograph of every square inch. Older faces teach best: the character has had time to develop.",feat.concat([cheek,crease,bag]),undefined]
+  ]));
+  cards[0].parts=[h.ball,h.eyes,h.nose,h.mouth,TXT(200,262,"nobody",{fs:20,o:.5})];
+  cards[1].parts=[s.cranium,s.sides,s.sockets,s.cheeks,s.jaw];
+  const op=[CAP(s.cranium,"Bone first."),s.sides,s.brow,s.sockets,s.nose,s.jaw,
+    CAP(cheek,"Then the flesh over it."),bag,CAP(crease,"The creases around the mouth."),CAP(bone,"The shadow shape under the cheekbone.")];
+  mk(16,"Indicating Character","Draw what makes this face this face.",15,cards,
+    "Find three older faces, in life or in clippings. For each, draw the bony shapes and the placement of the features first. Then add the cheeks, the creases and the jaw. Skip the small wrinkles. Fifteen minutes in total.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2});return [t.ball,t.mid,t.brow,t.jaw]}));
+})();
+
+/* ===================== lesson 17 ===================== */
+(function(){
+  const swing=LN("M 40 215 C 110 40 180 270 360 80","swing",{col:ACC,w:3});
+  const whisk=(()=>{let d="M 40 215";for(let i=0;i<22;i++){d+=` l ${6+i%2*2} ${i%2?7:-6}`}return LN(d,"whisk")})();
+  const arrow=LN("M 40 150 L 350 150 M 350 150 l -14 -8 M 350 150 l -14 8 M 60 150 l -12 -9 M 60 150 l -12 9 M 76 150 l -12 -9 M 76 150 l -12 9","arrow",{w:2.5});
+  const ball=LN("M 40 240 Q 200 20 360 240","ball",{col:ACC,w:3});
+  const palm=LN("M 110 245 Q 200 110 290 245","palm",{col:ACC,w:3});
+  const pivot={k:"d",cx:200,cy:262,r:7,tag:"wrist"};
+  const h=FH(200,150,90);
+  const block=LN(`M ${200-.82*90} ${150+.25*90} L ${200-.7*90} ${150+.85*90} L ${200-.3*90} ${150+1.0*90} L ${200+.3*90} ${150+1.0*90} L ${200+.7*90} ${150+.85*90} L ${200+.82*90} ${150+.25*90}`,"block",{col:ACC,w:3});
+  const cards=[
+    prob("Every line is careful and short. The drawing looks stiff and fussy, like a tracing.",null),
+    why("Rhythm is the hand working with the brain more than with the eye. It is the feel of the thing, not the look of it. A camera cannot give it to you.",null),
+  ].concat(fixes([
+    ["Rhythm is the longest line you can make before the edge changes direction. One long, direct line says more than a hundred little whiskery ones.",[whisk,swing],"swing"],
+    ["It is all around you. An arrow in flight. A wave. The arc of a ball in the air. A fielder dropping his hands along the line of the catch.",[arrow,ball],"ball"],
+    ["Train the hand. Hold the pencil in the palm, between the thumb and first finger, not cramped like a writing grip. Swing it from the wrist and arm and keep the fingers still.",[palm,pivot],["palm","wrist"]],
+    ["Draw large for a while. Bridgman drew his anatomy lectures with crayon on the end of a four-foot stick, and they were beautiful.",[swing,palm,pivot],undefined],
+    ["Rhythm need not be curves. Curves oppose blockiness, and the two together give a head that is drawn, not traced.",[h.ball,h.mid,h.brow,h.hair,h.nb,h.chin,h.jaw,block],"block"]
+  ]));
+  cards[0].parts=[whisk,TXT(200,262,"stiff",{fs:20,o:.5})];cards[1].parts=[swing,TXT(200,262,"the feel of it",{fs:20,o:.6})];
+  const op=[CAP(swing,"Rhythm is the longest line you can draw before the edge changes."),CAP(whisk,"Not this."),CAP(arrow,"An arrow in flight."),ball,CAP(palm,"Swing from the wrist, not the fingers."),pivot];
+  mk(17,"Rhythmic Lines in the Head","Draw with the arm, not the fingers.",15,cards,
+    "Fill a page with large, free lines: sweeping curves, loops, waves, each in one stroke from the shoulder. Then draw one head with a flowing curve on one side and a blocky edge on the other. Don't erase. Nobody does this well the first time.",
+    op,G3((x,i)=>[LN(`M ${x-50} 190 C ${x-30} 90 ${x+10} 220 ${x+50} 110`,"s",{w:2})]));
+})();
+
+/* ===================== lesson 18 ===================== */
+(function(){
+  const U=48,X0=128,Y0=66;
+  const rect=LN(`M ${X0} ${Y0} h ${3*U} v ${3.5*U} h ${-3*U} z`,"rect",{w:2.4});
+  const mid=LN(`M 200 ${Y0} L 200 ${Y0+3.5*U}`,"mid");
+  const lines=[0.5,1.5,2.5].map((k,i)=>LN(`M ${X0} ${Y0+k*U} h ${3*U}`,"u"+(i+1),{col:ACC,w:2,dash:"5 5"}));
+  const eyeL=LN(`M ${X0} ${Y0+1.75*U} h ${3*U}`,"eyeline",{col:ACC,w:2.4});
+  const nums=[TXT(106,Y0+1*U+5,"1",{tag:"n1"}),TXT(106,Y0+2*U+5,"2",{tag:"n2"}),TXT(106,Y0+3*U+5,"3",{tag:"n3"})];
+  const wid=LN(`M ${X0} ${Y0+3.5*U+16} h ${3*U} M ${X0} ${Y0+3.5*U+10} v 12 M ${X0+3*U} ${Y0+3.5*U+10} v 12`,"width",{w:1.8});
+  const face=FH(200,Y0+1.5*U,66);
+  const feats=[face.eyes,face.nose,face.mouth,face.jaw,face.ears];
+  const sq=LN(`M 116 ${Y0} h ${3.5*U} v ${3.5*U} h ${-3.5*U} z`,"sq",{w:2.4});
+  const side=SIDEH(195,150,79);
+  const cards=[
+    prob("Every head you draw is a different size, and the features land wherever the pencil lands.",null),
+    why("Without a scale you are measuring by eye again. Faces do vary, but a simple average in your head gives you something to measure against.",null),
+  ].concat(fixes([
+    ["The front of the head fits in a rectangle three units wide and three and a half deep. That leaves a little room beyond the ears on each side. Pick any unit you like: it's the proportions that matter.",[rect,mid,wid],"rect"],
+    ["The half measures put the eye line halfway down the whole head, which is where it falls on most real faces.",[rect,mid,eyeL],"eyeline"],
+    ["Three units divide the face: forehead, nose, jaw. Each is one unit. There is half a unit of skull above the hairline.",[rect,mid,eyeL].concat(lines,nums),["u1","u2","u3","n1","n2","n3"]],
+    ["The ears run from the brow to the base of the nose, one unit. The lips and chin take the last unit.",[rect,mid,eyeL].concat(lines,feats),["ears","mouth"]],
+    ["Turn to the side. The side view fits a square, three and a half units each way.",[sq].concat(side),"sq"]
+  ]));
+  cards[0].parts=[LN(ELL(200,150,60,84),"x",{o:.6}),LN(ELL(200,150,92,60),"y",{o:.4}),LN(ELL(200,150,44,100),"z",{o:.3}),TXT(200,264,"how big?",{fs:20,o:.6})];
+  cards[1].parts=[rect,mid,TXT(200,158,"?",{fs:64,o:.35})];
+  const op=[CAP(rect,"Three units wide. Three and a half deep."),mid,CAP(eyeL,"The eye line sits halfway down."),CAP(lines[0],"Hairline. Brow. Base of the nose."),lines[1],lines[2],CAP(face.ears,"The ears and the features sit inside it."),face.eyes,face.nose,face.mouth,face.jaw];
+  mk(18,"Proportions of the Male Head","Memorize the scale. Draw any size.",15,cards,
+    "Pick a unit, a thumb or a pencil width. Draw the front rectangle, three units wide and three and a half deep, and divide it. Place the features. Do it five times at five different sizes without looking at the page. Then do the side square.",
+    op,G3((x,i)=>{const r=LN(`M ${x-40} 90 h 80 v 94 h -80 z`,"r",{w:2});return [r,LN(`M ${x} 90 v 94`,"m"),LN(`M ${x-40} 138 h 80`,"e",{col:ACC})]}));
+})();
+
+/* ===================== lesson 19 ===================== */
+(function(){
+  const U=48,cx=200,cy=150;
+  const ball=LN(ELL(cx,cy,1.5*U,1.5*U),"ball",{w:2.6});
+  const wid=LN(`M ${cx-1.5*U} ${cy+1.5*U+14} h ${3*U} M ${cx-1.5*U} ${cy+1.5*U+8} v 12 M ${cx+1.5*U} ${cy+1.5*U+8} v 12`,"width",{w:1.8});
+  const face=LN(`M ${cx-U} ${cy-60} v 132 M ${cx+U} ${cy-60} v 132`,"face",{col:ACC,w:2.4});
+  const brow=LN(`M ${cx-1.5*U} ${cy} h ${3*U}`,"brow",{col:ACC,w:2});
+  const mid=LN(`M ${cx} ${cy-1.5*U} v ${3*U}`,"mid");
+  const quarters=LN(`M ${cx-.5*U} ${cy-60} v 120 M ${cx+.5*U} ${cy-60} v 120`,"quarters",{col:ACC,w:1.8,dash:"4 5"});
+  const eyes=LN(lens2(cx-.5*U,cy+9,13,9)+" "+lens2(cx+.5*U,cy+9,13,9),"eyes");
+  const ex=FH(cx,cy,1.5*U);
+  const cards=[
+    prob("You draw the face too wide, then the ears have nowhere to go.",null),
+    why("The width of the head and the width of the face are two different measurements. The ears account for the difference.",null),
+  ].concat(fixes([
+    ["The circle is the ball, as before. Its width is the width of the whole head, ears included.",[ball,mid,brow,wid],"ball"],
+    ["The face itself is about two units wide, inside the ball. The ears take the rest.",[ball,mid,brow,face,wid],"face"],
+    ["Split those two units into quarters. The eyes fall at the quarter points, between the middle halves.",[ball,mid,brow,face,quarters,eyes],["quarters","eyes"]],
+    ["That is the same division you already know from the ball and the plane. Same head, two ways to measure.",[ex.ball,ex.mid,ex.brow,ex.hair,ex.nb,ex.chin,ex.jaw,ex.eyes,ex.nose,ex.mouth,ex.ears],undefined]
+  ]));
+  cards[0].parts=[LN(ELL(cx,cy,60,84),"f"),LN("M 130 150 q -12 14 0 28 M 270 150 q 12 14 0 28","e",{col:ACC}),TXT(200,262,"no room for ears",{fs:20,o:.6})];
+  cards[1].parts=[ball,mid,brow,face];
+  const op=[CAP(ball,"The ball is the width of the head, ears included."),mid,brow,CAP(face,"The face is about two units wide."),CAP(quarters,"Eyes at the quarter points."),eyes,wid];
+  mk(19,"Drawing the Head in Units","Fit the face inside the ball by the numbers.",15,cards,
+    "Draw the ball, the middle line and the brow line. Mark the two-unit face inside it, and the quarter points for the eyes. Do it at three sizes, then place the whole face by the units without looking at an example.",
+    op,G3((x,i)=>{const r=58;return [LN(ELL(x,150,r,r),"b",{w:2}),LN(`M ${x} ${150-r} v ${2*r}`,"m"),LN(`M ${x-r} 150 h ${2*r}`,"e",{col:ACC}),LN(`M ${x-r*.67} 100 v 100 M ${x+r*.67} 100 v 100`,"f",{col:ACC})]}));
+})();
+
+/* ===================== lesson 20 ===================== */
+(function(){
+  const h=FH(200,150,90),m=MUS(200,150,90);
+  const base=[h.ball,h.mid,h.brow,h.eyes,h.nose,h.mouth,h.jaw];
+  const all=base.concat([m.masseter,m.orbEye,m.orbMouth,m.happy,m.unhappy,m.wrinkleBrow]);
+  const neckHead=[h.ball,h.jaw,m.neck,m.scm];
+  const cards=[
+    prob("The expressions look pasted on. You can draw the features and the face still can't do anything.",null),
+    why("Every expression comes from a very few muscles under the flesh. Knowing where they lie and what they do is the difference between guesswork and knowledge.",null),
+  ].concat(fixes([
+    ["You don't need the names. You need three things for each muscle: where it is, where it attaches, and what it does.",all,undefined],
+    ["Some attach to bone at both ends. They move the bony structure. Others attach to bone at one end and to other muscle at the other. They move the flesh.",all,["masseter","happy"]],
+    ["The most powerful one closes the jaw. Feel it at the corner of the jaw, just below and in front of the ear. A second spreads over the side of the cranium. Together they crunch and grind.",base.concat([m.masseter,m.temporal]),["masseter","temporal"]],
+    ["The eyes and the mouth are slits in a circular sheet of muscle. Cut a slit in half a hollow rubber ball and it closes by itself. Pull it and it opens.",base.concat([m.orbEye,m.orbMouth]),["orbEye","orbMouth"]],
+    ["The head sits on a neck. Two diagonal muscles turn it, from just behind the ears down to the breastbone. Two strong ones under the back of the skull hold it up or tip it back. It drops forward mostly by its own weight.",neckHead,"scm"],
+    ["Then get in front of a mirror and give your own face a good working over.",all,undefined]
+  ]));
+  cards[0].parts=[h.ball,h.eyes,h.nose,h.mouth,TXT(200,262,"pasted on",{fs:20,o:.6})];
+  cards[1].parts=base.concat([m.happy,m.unhappy]);
+  const op=[CAP(h.ball,"The head you know."),h.mid,h.brow,h.jaw,h.eyes,h.nose,h.mouth,CAP(m.masseter,"The jaw muscle, in front of the ear."),CAP(m.orbEye,"A ring around each eye."),CAP(m.orbMouth,"A ring around the mouth."),CAP(m.scm,"And two that turn the head.")];
+  mk(20,"Anatomy of the Head","Learn where the muscles are and what they do.",15,cards,
+    "Stand at a mirror. Clench your jaw and find the muscle by the ear. Open and close your mouth. Turn your head and find the two cords in your neck. Then draw a head with the muscles marked over the construction. Label nothing.",
+    op.concat([m.neck]),G3((x,i)=>{const t=FH(x,150,58,{w:2}),mm=MUS(x,150,58);return [t.ball,t.mid,t.brow,t.jaw,mm.masseter,mm.orbEye,mm.orbMouth]}));
+})();
+
+/* ===================== lesson 21 ===================== */
+(function(){
+  const h=FH(200,150,90),m=MUS(200,150,90);
+  const base=[h.ball,h.mid,h.brow,h.jaw];
+  const sm=EX(200,150,90,"smile"),rx=EX(200,150,90,"relaxed"),wo=EX(200,150,90,"worry"),fr=EX(200,150,90,"frown");
+  const face=(e)=>base.concat([e.brows,e.eyes,e.mouth],e.extra);
+  const cards=[
+    prob("You draw a happy face and it comes out dead-pan. Or the smile curdles into a leer.",null),
+    why("The smile is made by muscles, and you drew the mouth without them. Smiles matter most in commercial work, and a dead-pan face is much easier to draw than a happy one.",null),
+  ].concat(fixes([
+    ["The happy muscles: little ribbons from the cheekbones, running diagonally down the cheeks to the muscle around the lips. Pull them up and a smile flashes.",base.concat([m.happy,h.eyes,h.nose,h.mouth]),"happy"],
+    ["The creases at the corners of the eyes are only the cheeks buckling under that pull. So is the fold under the eyes. The nostrils may flare a little too.",face(sm),"crease"],
+    ["The unhappy muscles run from the sides of the nose, past the corners of the mouth, to the chin. They pull the lips up in a snarl or down in a leer, and they round the corners of the mouth. The dimple in a smiling cheek is the gap between this muscle and the jaw muscle.",base.concat([m.unhappy,h.eyes,h.nose,h.mouth]),"unhappy"],
+    ["The rest are wrinkle muscles. One at the inner corner of each brow lifts it, in worry or pleading. The unhappy muscle pulls it down in a frown. Two small ones at the chin make a dimple, or little humps.",base.concat([m.wrinkleBrow,m.chinW,h.eyes,h.nose,h.mouth]),["wrinkleBrow","chinW"]],
+    ["The mouth stays closed with almost no effort. Opening it wide is a conscious effort. Use that.",face(rx),undefined]
+  ]));
+  cards[0].parts=face(rx);cards[1].parts=base.concat([m.happy,m.unhappy,m.wrinkleBrow,m.orbEye,m.orbMouth]);
+  const op=[CAP(h.ball,"A face, relaxed."),h.mid,h.brow,h.jaw,rx.eyes,rx.mouth,CAP(m.happy,"The happy muscles pull up and out."),CAP(m.unhappy,"The unhappy muscles pull down."),CAP(m.wrinkleBrow,"The wrinkle muscles move the brows.")];
+  mk(21,"How the Muscles Function","Make a smile come from somewhere.",15,cards,
+    "Draw the same relaxed head four times. Give each a different pull: the happy muscles, the unhappy muscles, the brow lifted, the brow dropped. Draw the muscles first in light lines, then the expression. Keep every line light.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2}),e=EX(x,150,58,["smile","worry","frown"][i]);return [t.ball,t.mid,t.brow,t.jaw,e.brows,e.eyes,e.mouth].concat(e.extra)}));
+})();
+
+/* ===================== lesson 22 ===================== */
+(function(){
+  const yaw=34,pitch=6;
+  const head=sph(200,150,90,yaw,pitch,{cross:false});
+  const pr=head.proj;
+  const ln=(pts,tag,o)=>pushPaths(head,[pts],pr,{tag:tag,f:Object.assign({w:2.4},o||{}),b:Object.assign({w:1.4},o||{})});
+  const happyL=arcPts(sv(-14,-44),sv(-46,-20),8),happyR=arcPts(sv(-14,44),sv(-46,20),8);
+  const unhL=arcPts(sv(-26,-10),sv(-64,-12),8),unhR=arcPts(sv(-26,10),sv(-64,12),8);
+  const masL=arcPts(sv(-30,-76),sv(-58,-70),8),masR=arcPts(sv(-30,76),sv(-58,70),8);
+  const ringE=lon=>{const a=[];for(let t=0;t<=360;t+=20){a.push(sv(-9+8*Math.sin(t*D2R),lon+13*Math.cos(t*D2R)))}return a};
+  ln(happyL,"happy",{col:ACC,w:3});ln(happyR,"happy",{col:ACC,w:3});
+  ln(unhL,"unhappy",{col:ACC,w:3});ln(unhR,"unhappy",{col:ACC,w:3});
+  ln(masL,"mas");ln(masR,"mas");ln(ringE(-24),"ring");ln(ringE(24),"ring");
+  sdot(head,pr,sv(-9,-24),"eye");sdot(head,pr,sv(-9,24),"eye");
+  const front=sph(200,150,90,0,0,{cross:false});const fp=front.proj;
+  const fl=(pts,tag,o)=>pushPaths(front,[pts],fp,{tag:tag,f:Object.assign({w:2.4},o||{}),b:Object.assign({w:1.4},o||{})});
+  fl(happyL,"happy",{col:ACC,w:3});fl(happyR,"happy",{col:ACC,w:3});fl(unhL,"unhappy",{col:ACC,w:3});fl(unhR,"unhappy",{col:ACC,w:3});fl(ringE(-24),"ring");fl(ringE(24),"ring");
+  const tilt=sph(200,150,90,-20,28,{cross:false});const tp=tilt.proj;
+  [happyL,happyR,unhL,unhR].forEach(a=>pushPaths(tilt,[a],tp,{tag:"happy",f:{col:ACC,w:3},b:{col:ACC,w:1.4}}));
+  const cards=[
+    prob("You learned the muscles on a flat page. Turn the head and they float off the face.",null),
+    why("They were learned as a picture, not as parts of the ball.",null),
+  ].concat(fixes([
+    ["Put the muscles inside the construction you already know: the ball, the middle line, the brow line.",front,["happy","unhappy","ring"]],
+    ["Turn the head. The muscles follow the curve of the ball, and they stay balanced on each side of the middle line.",head,["happy","unhappy","mas"]],
+    ["Tip it up or down. The brow line curves, and every muscle curves with it.",tilt,"happy"],
+    ["They fall into place more easily than you'd expect, once the construction is right.",head,undefined],
+    ["Why bother? Most artists have only a hazy idea of this. You can learn the necessary anatomy in two or three short sessions. When it takes so little, spend it.",front,undefined]
+  ]));
+  cards[0].parts=sph(200,150,90,34,6,{cross:false}).concat([TXT(200,264,"floating",{fs:20,o:.6})]);
+  cards[1].parts=front;
+  const op=[CAP(front[0],"The ball and the muscles, head-on."),front[1],front[2]].concat(front.slice(3));
+  op.push(CAP(head[0],"Turn it. They turn with it."));
+  mk(22,"The Muscles from Various Angles","Keep the muscles inside the construction.",20,cards,
+    "Draw the ball in six poses: turned left, turned right, tipped up, tipped down, and two in between. On each, place the eye rings, the happy muscles and the unhappy muscles, and check that they balance on each side of the middle line.",
+    op,G3((x,i)=>{const s=sph(x,150,58,[0,34,-20][i],[0,6,28][i],{cross:false,w:2}),p=s.proj;[happyL,happyR,unhL,unhR].forEach(a=>pushPaths(s,[a],p,{tag:"m",f:{col:ACC,w:2.4},b:{col:ACC,w:1.2}}));return s}));
+})();
+
+/* ===================== lesson 23 ===================== */
+(function(){
+  const s=SKULL(200,130,80);
+  const base=[s.cranium,s.sides,s.brow,s.sockets,s.nose,s.teeth,s.jaw];
+  const upper=LN(`M ${200-.5*80} ${130+.6*80} Q 200 ${130+.78*80} ${200+.5*80} ${130+.6*80}`,"upper",{col:ACC,w:3});
+  const drop=LN(`M 280 ${130+.9*80} v 36 M 274 ${130+.9*80+30} l 6 8 l 6 -8`,"drop",{col:ACC,w:2.4});
+  const muz=LN(`M 130 270 Q 200 232 270 270`,"muzzle",{w:3});
+  const lipsTop=LN(`M 146 262 Q 200 228 254 262 Q 200 246 146 262`,"lips");
+  const lipsLow=LN(`M 150 266 Q 200 296 250 266`,"lips");
+  const teeth=LN(`M 160 258 Q 200 238 240 258`,"teeth",{o:.6});
+  const cards=[
+    prob("You draw the mouth as if it lay on a flat plane, a line with two lips on it. It sits on the face like a sticker.",null),
+    why("The mouth is a hinge and a muzzle. The teeth curve around the jaw and the lips lie over that curve, round and full.",null),
+  ].concat(fixes([
+    ["The upper jaw is fixed in the face. All the movement is in the lower jaw. The curve of the upper teeth never changes, except as viewpoint changes it.",base,"upper"],
+    ["When the lower jaw drops, it can add as much as two inches to the length of the face. If you open the teeth, drop the chin to match.",base.concat([s.jawOpen,drop]),["jawOpen","drop"]],
+    ["Look down on the muzzle from above. The teeth curve around, and the lips follow them. Consider the roundness all the way around.",[muz,teeth,lipsTop,lipsLow],["muzzle","teeth"]],
+    ["The lips are not flat. They lie on a rounded plane and have full forms. Closed, open or wide open, they still sit on the same curve.",[muz,teeth,lipsTop,lipsLow],"lips"]
+  ]));
+  cards[0].parts=[LN("M 130 190 h 140","flat",{w:3}),LN("M 150 190 q 50 -14 100 0 q -50 22 -100 0","lip"),TXT(200,264,"a sticker",{fs:20,o:.6})];
+  cards[1].parts=base.concat([upper]);
+  const op=[CAP(s.cranium,"The skull."),s.sockets,s.nose,CAP(s.teeth,"The upper teeth are fixed."),CAP(s.jaw,"The jaw is the only part that moves."),CAP(s.jawOpen,"Open wide and the chin drops."),CAP(muz,"The muzzle is round."),teeth,lipsTop,lipsLow];
+  mk(23,"Mechanics of the Mouth","Make the mouth lie on a curve.",15,cards,
+    "Draw the muzzle from three views: front, three-quarter and from above. Then draw your own mouth in a mirror: closed, open and wide open. In each, find the curve of the teeth and drop the chin to match.",
+    op,G3((x,i)=>{const t=SKULL(x,150,48);return [t.cranium,t.sockets,t.teeth,i===2?t.jawOpen:t.jaw]}));
+})();
+
+/*@@end3*/
+
+/*@@batch4*/
+/* ===================== batch 4: lessons 24-31 ===================== */
+// mouth shapes: kind closed | open | wide
+function MOUTHS(cx,cy,w,kind){
+  const d=kind==="wide"?w*.55:kind==="open"?w*.22:0,out=[];
+  out.push(LN(`M ${cx-w} ${cy} Q ${cx-w*.5} ${cy-w*.16} ${cx} ${cy-w*.06} Q ${cx+w*.5} ${cy-w*.16} ${cx+w} ${cy}`,"upper",{w:2.6}));
+  if(kind==="closed"){out.push(LN(`M ${cx-w} ${cy} Q ${cx} ${cy+w*.36} ${cx+w} ${cy}`,"lower",{w:2.6}));return out}
+  out.push(LN(`M ${cx-w} ${cy} Q ${cx-w*.5} ${cy+w*.04} ${cx} ${cy+w*.02} Q ${cx+w*.5} ${cy+w*.04} ${cx+w} ${cy}`,"seam",{w:1.8}));
+  out.push(LN(`M ${cx-w} ${cy} Q ${cx} ${cy+d+w*.4} ${cx+w} ${cy}`,"lower",{w:2.6}));
+  out.push(LN(`M ${cx-w*.62} ${cy+w*.07} Q ${cx} ${cy+w*.2} ${cx+w*.62} ${cy+w*.07}`,"teeth",{o:.8,w:2}));
+  let dk="";for(let i=0;i<5;i++){const x=cx-w*.55+i*w*.275;dk+=`M ${f1(x)} ${f1(cy+d*.8+w*.2)} l ${f1(w*.12)} ${f1(-w*.04)} `}
+  out.push(LN(dk,"dark",{w:2.2,col:ACC}));
+  return out;
+}
+function NOSE3(cx,cy,s,k){ // side noses: three shapes
+  const t=[[.55,.42,.1],[.4,.5,.2],[.7,.3,.0]][k];
+  return LN(`M ${cx} ${cy-s*.9} L ${cx+s*.12} ${cy-s*.15} L ${cx+s*t[0]} ${cy+s*t[1]*.5} L ${cx+s*(t[0]-.2)} ${cy+s*t[1]*.9} L ${cx+s*t[2]} ${cy+s*.62}`,"nose"+k);
+}
+function EAR3(cx,cy,s,k){
+  if(k===0)return LN(`M ${cx-s*.3} ${cy-s*.8} Q ${cx+s*.5} ${cy-s*1.05} ${cx+s*.5} ${cy-s*.2} Q ${cx+s*.45} ${cy+s*.7} ${cx-s*.1} ${cy+s*.95} Q ${cx-s*.35} ${cy+s*.7} ${cx-s*.3} ${cy+s*.3} M ${cx+s*.12} ${cy-s*.5} Q ${cx+s*.3} ${cy-s*.2} ${cx+s*.12} ${cy+s*.35}`,"ear0");
+  if(k===1)return LN(`M ${cx-s*.15} ${cy-s*.9} Q ${cx+s*.25} ${cy-s*.5} ${cx-s*.05} ${cy+s*.9} M ${cx-s*.15} ${cy-s*.9} Q ${cx-s*.35} ${cy-s*.1} ${cx-s*.05} ${cy+s*.9}`,"ear1");
+  return LN(`M ${cx+s*.3} ${cy-s*.8} Q ${cx-s*.5} ${cy-s*1.05} ${cx-s*.5} ${cy-s*.2} Q ${cx-s*.45} ${cy+s*.7} ${cx+s*.1} ${cy+s*.95} Q ${cx+s*.35} ${cy+s*.7} ${cx+s*.3} ${cy+s*.3} M ${cx-s*.12} ${cy-s*.5} Q ${cx-s*.3} ${cy-s*.2} ${cx-s*.12} ${cy+s*.35}`,"ear2");
+}
+
+/* ===================== lesson 24 ===================== */
+(function(){
+  const one=EYE(200,150,86);
+  const pair=EYE(120,150,60,{look:.45}).concat(EYE(280,150,60,{look:.45}));
+  const stick=LN("M 50 150 L 350 150","stick",{col:ACC,w:3,dash:"2 7"});
+  const balls=EYE(120,150,60,{look:.45,dim:true}).concat(EYE(280,150,60,{look:.45,dim:true}));
+  const lidsOnly=one.filter(p=>p.tag==="lids"||p.tag==="iris"||p.tag==="pupil");
+  const flat=[LN(lens2(200,150,84,44),"flat"),LN(ELL(200,150,24,24),"iris"),{k:"d",cx:200,cy:150,r:9,col:"currentColor",tag:"pupil"}];
+  const cards=[
+    prob("The eye comes out as a dark circle on a white oval, stuck on the face like a button.",null),
+    why("The eye isn't a flat shape. It is a ball in a socket, and the lids wrap around it. You see only a little more than a quarter of that ball.",null),
+  ].concat(fixes([
+    ["Draw the whole ball first, then the lids over it. Between the lids you see only a little more than a quarter of the eyeball.",one,["ball"]],
+    ["The curve of the ball is obvious from corner to corner of the lids. The lids work almost exactly like the lips: they lie on a rounded surface, they don't cut across it.",one,"lids"],
+    ["Except head-on, the two eyes are never exact copies. When one iris sits at the inner corner, the other sits at the outer corner.",pair,"iris"],
+    ["There's a slight bulge of the lens that travels around under the upper lid. Let the lid ride over the curve.",one,["iris","lids"]],
+    ["Think of two balls working together on a stick. Turn the stick and both eyes turn.",balls.concat([stick]),["stick","iris"]],
+    ["Draw many eyes. First separately, then in pairs. Clip out pictures of eyes and copy them.",pair,undefined]
+  ]));
+  cards[0].parts=flat;cards[1].parts=one;
+  const op=[CAP(pair[0],"Each eye is a ball."),pair[5],pair[1],pair[2],pair[6],pair[7],CAP(pair[3],"The lids lie on it, like lips."),pair[4],pair[8],pair[9],CAP(stick,"Two balls on a stick. Turn the stick and both eyes turn.")];
+  mk(24,"Mechanics of the Eyes","Draw the ball before you draw the lid.",15,cards,
+    "Draw twenty eyes: ten alone and ten in pairs. Begin every one as a ball, then lay the lids over it. Make each pair look in a different direction, and copy a few from clippings.",
+    op,G3((x,i)=>EYE(x,150,50,{look:[0,.4,-.4][i]})));
+})();
+
+/* ===================== lesson 25 ===================== */
+(function(){
+  const closed=MOUTHS(200,150,90,"closed"),open=MOUTHS(200,150,90,"open"),wide=MOUTHS(200,150,90,"wide");
+  const small=(k,x)=>MOUTHS(x,160,48,k);
+  const row=small("closed",70).concat(small("open",200),small("wide",330));
+  const boxes=(()=>{let d="";for(let i=0;i<8;i++){d+=`M ${118+i*20} 150 v 24 h 18 v -24 z `}return LN(d,"boxes")})();
+  const cards=[
+    prob("The teeth are a row of little boxes. They look stuck on top of the mouth and they spoil an otherwise good head.",null),
+    why("It's very easy to overdo the detail in teeth until they no longer stay inside the mouth. The eye reads the gum above and the dark below, not the lines between.",null),
+  ].concat(fixes([
+    ["For now, consider the lips and the teeth separately. They are two forms, one over the other.",open,["upper","lower","teeth"]],
+    ["Show the teeth by the gums above and the dark accent below. Don't draw lines between them.",open,["teeth","dark"]],
+    ["Closed, open, wide open. The lips stay full and rounded in all three, and the jaw drops with them.",row,undefined],
+    ["Get a mirror and draw your own mouth. Move the lips. Tilt your head to different angles.",wide,undefined]
+  ]));
+  cards[0].parts=[boxes,LN("M 110 150 Q 200 120 290 150 M 110 174 Q 200 204 290 174","lips"),TXT(200,264,"too much teeth",{fs:20,o:.6})];
+  cards[1].parts=open;
+  const op=[CAP(row[0],"Closed."),row[1],CAP(row[2],"Open."),row[3],row[4],row[5],row[6],CAP(row[7],"Wide open. The jaw drops with it."),row[8],row[9],row[10],CAP(row[11],"Gums above. Dark accent below. No lines between the teeth.")];
+  mk(25,"Movement of the Lips","Draw teeth by what's around them.",15,cards,
+    "Draw ten mouths from a mirror or from clippings: closed, smiling, open, turned, tilted. Draw the lips and the teeth as separate forms, and show the teeth only with the gum above and a dark accent below. No lines between the teeth.",
+    op,G3((x,i)=>MOUTHS(x,150,40,["closed","open","wide"][i])));
+})();
+
+/* ===================== lesson 26 ===================== */
+(function(){
+  const side=SIDEH(200,140,80),sideL=SIDEH(200,140,80,{line:true});
+  const tilted=sph(200,150,90,0,26,{cross:false});
+  const noses=[NOSE3(90,150,56,0),NOSE3(200,150,56,1),NOSE3(310,150,56,2)];
+  const ears=[EAR3(90,150,60,0),EAR3(200,150,60,1),EAR3(310,150,60,2)];
+  const cards=[
+    prob("The nose lands on the cheek and the ear floats behind the head. Both look fine alone and wrong together.",null),
+    why("They change with the viewpoint as much as the lips do. The real difficulty isn't the details. It's setting them in the construction.",null),
+  ].concat(fixes([
+    ["Fix the viewpoint of the whole head first. Nothing else can be drawn until you do.",side,"ball"],
+    ["Noses and ears vary a lot in shape and very little in basic construction. Learn the construction.",noses.concat(ears),undefined],
+    ["The nostrils sit evenly on a line running from the base of the nose to the base of the ear.",sideL,"nline"],
+    ["The nose is at right angles to the line of the eyes and brows. When the brows tip, the nose tips. In fact everything in the face tips.",tilted,["mid","brow"]],
+    ["Draw the nose and the ear together so their relationship is set. The ear looks very different from the front, the side and the back.",ears,undefined],
+    ["From life, make sure the pose doesn't move between the features. A changed pose throws the drawing off completely.",sideL,undefined]
+  ]));
+  cards[0].parts=[sideL[0],LN(`M 270 150 l 18 20 l -18 8`,"floatnose"),LN(`M 150 190 q 14 18 4 38 q -8 -14 -4 -38`,"floatear"),TXT(200,264,"don't match",{fs:20,o:.6})];
+  cards[1].parts=side;
+  const op=[CAP(side[0],"A head, seen from the side."),side[1],side[2],side[3],CAP(sideL[5],"Nostrils and ear base share a line."),CAP(ears[0],"And the ear, from three views."),ears[1],ears[2]];
+  mk(26,"Construction of the Nose and the Ears","Set them in the head before you draw them.",15,cards,
+    "Draw the head from the side and mark the line from the base of the nose to the base of the ear. Then draw four noses and four ears together, from front, side and three-quarter. Hold the pose the same for each pair.",
+    op,G3((x,i)=>SIDEH(x,150,40,{line:true})));
+})();
+
+/* ===================== lesson 27 ===================== */
+(function(){
+  const h=FH(200,150,90),m=MUS(200,150,90);
+  const base=[h.ball,h.mid,h.brow,h.jaw];
+  const sm=EX(200,150,90,"smile"),lg=EX(200,150,90,"laugh");
+  const face=e=>base.concat([e.brows,e.eyes,e.mouth],e.extra);
+  const sharp=LN(`M 100 190 Q 150 230 200 188`,"sharp",{col:ACC,w:3}),round=LN(`M 220 188 Q 265 218 300 188 Q 300 210 262 222 Q 228 220 220 188`,"round",{col:ACC,w:3});
+  const cards=[
+    prob("The smile comes out as a smirk or a sneer. Or the face looks as if it's smelling something.",null),
+    why("In a drawing, lines are black. The creases that are delicate on a face get too heavy on paper, and a heavy line at the nostril turns a smile into a sneer.",null),
+  ].concat(fixes([
+    ["There are two kinds of corner. The sharp-cornered smile ends in a point. The round-cornered laugh rounds out. A round corner badly drawn can easily become a leer.",[sharp,round],undefined],
+    ["The smile creases run well outside the corners of the mouth and curve toward the side of the chin. The lips lie in an oval sheet of muscle, and the creases form at its outer edge.",face(sm).concat([m.orbMouth]),["crease","orbMouth"]],
+    ["The folds under the eyes can add mirth, when they look natural and part of the smile. Keep them light, or they turn into pouches and crow's feet.",face(sm),"crease"],
+    ["A smile shows more of the upper teeth than the lower. The corners of the lips pull away from the teeth and leave a dark accent. Don't run the teeth right into the corners.",face(lg),["teeth","mouth"]],
+    ["Highlight the two front upper teeth, and tone the rest down as they go back. Don't draw the lines between them. Suggest teeth, unless you are selling toothpaste.",face(lg),"teeth"]
+  ]));
+  cards[0].parts=base.concat([EX(200,150,90,"relaxed").eyes,LN("M 160 214 Q 200 226 240 214 M 156 190 Q 150 200 156 210 M 244 190 Q 250 200 244 210","sneer",{w:3.6,col:ACC})]);
+  cards[1].parts=face(sm);
+  const op=[CAP(h.ball,"A relaxed head."),h.mid,h.brow,h.jaw,CAP(sm.mouth,"A smile: the corners pull out and up."),sm.brows,sm.eyes,sm.extra[0],CAP(sm.extra[1],"The cheeks buckle at the eye corners."),CAP(lg.mouth,"A laugh: the corners round out."),lg.extra[0]];
+  mk(27,"Expression: The Laugh","Draw a smile that stays a smile.",15,cards,
+    "Draw six smiles and laughs from clippings, since a model can't hold a real one for long. Include a sharp-cornered smile and a round-cornered laugh. Keep every crease light, and leave out the lines between teeth. Check them with a mirror.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2}),e=EX(x,150,58,["smile","laugh","smile"][i]);return [t.ball,t.mid,t.brow,t.jaw,e.brows,e.eyes,e.mouth].concat(e.extra)}));
+})();
+
+/* ===================== lesson 28 ===================== */
+(function(){
+  const h=FH(200,150,90);
+  const base=[h.ball,h.mid,h.brow,h.jaw];
+  const ex=k=>EX(200,150,90,k),face=e=>base.concat([e.brows,e.eyes,e.mouth],e.extra);
+  const mouthRow=["pout","frown","anger","worry"].map((k,i)=>{const e=EX(70+i*87,150,40,k);return LN(e.mouth.d,"m"+i)});
+  const four=(x,k)=>{const t=FH(x,150,38,{w:2}),e=EX(x,150,38,k);return [t.ball,t.mid,t.brow,t.jaw,e.brows,e.eyes,e.mouth].concat(e.extra)};
+  const mirrors=[LN("M 60 70 L 60 240 L 130 255 L 130 85 z","m1"),LN("M 340 70 L 340 240 L 270 255 L 270 85 z","m2"),{k:"d",cx:200,cy:150,r:8,tag:"you"}];
+  const cards=[
+    prob("Every expression that isn't a smile comes out as the same blank face with a different mouth stuck on.",null),
+    why("Most expressions start in the mouth, and then the whole face follows it. You can't invent the follow-through. You have to see it.",null),
+  ].concat(fixes([
+    ["The action of the lips can vary a great deal. Learn the mouth first: pout, frown, snarl, worry.",mouthRow.concat([h.ball]).slice(0,4),undefined],
+    ["Use a mirror. A cartoonist keeps one handy, since he can pull an expression faster than he can explain it to a model. Look at the muscles only. You don't need a likeness of yourself.",face(ex("worry")),["brows","mouth"]],
+    ["With two mirrors set properly you can get a side view, a three-quarter view, or turn left into right.",mirrors,undefined],
+    ["It does no harm to photograph a lot of expressions for your files. Just don't make a crutch of the camera. A photograph carries distortions that get into any drawing made from it.",face(ex("anger")),undefined]
+  ]));
+  cards[0].parts=face(ex("relaxed")).concat([TXT(200,262,"same face every time",{fs:18,o:.6})]);
+  cards[1].parts=face(ex("pout"));
+  const op=[CAP(face(ex("worry"))[0],"Worry."),...face(ex("worry")).slice(1),CAP(ex("anger").mouth,"Anger."),ex("anger").brows,ex("anger").eyes];
+  mk(28,"Various Expressions","Pull the expression yourself and draw what moves.",15,cards,
+    "Sit at a mirror and make six expressions: worry, frown, anger, pout, surprise, a smile. Draw only the action of the muscles. You don't need a likeness. Keep the construction the same for all six.",
+    op,G3((x,i)=>four(x,["worry","frown","anger"][i])));
+})();
+
+/* ===================== lesson 29 ===================== */
+(function(){
+  const kinds=["relaxed","smile","frown","pout","worry","laugh"];
+  const typeH=(x,y,r,o)=>FH(x,y,r,Object.assign({w:2},o||{}));
+  const t=typeH(200,150,90,{a:1.3,b:.85,c:1.2});
+  const face=(h,e)=>[h.ball,h.mid,h.brow,h.jaw,h.hair,h.nb,h.chin,e.brows,e.eyes,e.mouth].concat(e.extra);
+  const grid=(k)=>[0,1,2].map(i=>{const h=typeH(75+i*125,150,52,{a:1.3,b:.85,c:1.2}),e=EX(75+i*125,150,52,kinds[(k+i)%kinds.length]);return face(h,e)}).reduce((a,b)=>a.concat(b),[]);
+  const cards=[
+    prob("Every face you invent looks like a stranger who is smiling for no reason, or not at all.",null),
+    why("You have the expression but not the person. A type needs to exist before it can show a feeling.",null),
+  ].concat(fixes([
+    ["Take considerable liberty. Build a type first: wide or narrow, a long forehead, a short jaw.",face(t,EX(200,150,90,"relaxed")),undefined],
+    ["Then draw him again, smiling. Same skull, same spacing. Only the muscles move.",face(t,EX(200,150,90,"smile")),undefined],
+    ["Then frowning. Then pouting, laughing, worrying. Whatever else you can think of.",grid(0),undefined],
+    ["It's really fun, and every drawing adds to your stock in trade.",grid(3),undefined]
+  ]));
+  cards[0].parts=[LN(ELL(75,150,40,60),"a"),LN(ELL(200,150,40,60),"b"),LN(ELL(325,150,40,60),"c"),TXT(200,262,"strangers",{fs:20,o:.6})];
+  cards[1].parts=face(t,EX(200,150,90,"relaxed"));
+  const op=[CAP(t.ball,"Build a type."),t.mid,t.brow,t.hair,t.nb,t.chin,t.jaw,CAP(EX(200,150,90,"smile").mouth,"Make him smile."),EX(200,150,90,"smile").brows,EX(200,150,90,"smile").eyes];
+  mk(29,"Characterization through Expression","Draw one man in six moods.",20,cards,
+    "Invent one character and build his understructure. Then draw him six times: smiling, frowning, pouting, laughing, worrying, and a sixth of your choice. Keep the skull the same each time. It should still be him.",
+    op,G3((x,i)=>{const h=typeH(x,150,58,{a:1.3,b:.85,c:1.2}),e=EX(x,150,58,["smile","frown","worry"][i]);return face(h,e)}));
+})();
+
+/* ===================== lesson 30 ===================== */
+(function(){
+  const h=FH(200,150,90),a=AGE(200,150,90,2),m=MUS(200,150,90);
+  const base=[h.ball,h.mid,h.brow,h.jaw,h.eyes,h.nose,h.mouth];
+  const net=(()=>{let d="";for(let i=0;i<14;i++){const x=125+i*11;d+=`M ${x} 90 q ${i%2?8:-8} 60 ${i%3*6} 150 `}for(let j=0;j<10;j++){const y=95+j*14;d+=`M 118 ${y} q 40 ${j%2?10:-10} 164 ${j%3*3} `}return LN(d,"net",{w:1.1,o:.8})})();
+  const lines=[a[0],a[1],a[2]].filter(Boolean);
+  const cards=[
+    prob("You draw every wrinkle and the face turns into a map.",null),
+    why("Small wrinkles come from the shrinking of the flesh between the muscles. They are very delicate shadows, seen only from a few feet away. They are not the lines that matter.",null),
+  ].concat(fixes([
+    ["Learn the size, shape and placement of the muscles. Then you can name every line, hump and bump in a face.",base.concat([m.masseter,m.orbEye,m.orbMouth,m.happy,m.unhappy]),undefined],
+    ["The lines run along the edges of the muscles. The small wrinkles fill the flesh between them. Older faces show the difference best.",base.concat(a),undefined],
+    ["Draw the long creases: in the cheeks, around the mouth, over and under the eyes. Those and the soft forms of the flesh beneath.",base.concat(a),["mouthline","pouch"]],
+    ["Forehead wrinkles belong only to raised eyebrows. Most of the rest can be left out. The more wrinkles you eliminate, the better your drawing will be liked.",base.concat([a[0]]),undefined],
+    ["Wrinkles are never black lines on the actual face. They're delicate shadows. Never draw a face as a map or a network of wrinkles.",base.concat(a),undefined]
+  ]));
+  cards[0].parts=base.concat([net]);cards[1].parts=base.concat([net]);
+  const op=[CAP(h.ball,"A face."),h.mid,h.brow,h.jaw,h.eyes,h.nose,h.mouth,CAP(net,"Not this: a network of wrinkles."),CAP(a[2],"The long creases, and the forms of the flesh.")].concat(a.slice(3));
+  mk(30,"Analysis of Facial Markings","Draw the lines that matter. Leave the rest out.",15,cards,
+    "Draw three older faces. For each, first mark the muscles lightly, then draw only the long creases and the main forms. Leave out the small wrinkles. Then draw one with every wrinkle, and compare the two.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2}),aa=AGE(x,150,58,2);return [t.ball,t.mid,t.brow,t.jaw,t.eyes,t.nose,t.mouth].concat(aa)}));
+})();
+
+/* ===================== lesson 31 ===================== */
+(function(){
+  const mk3=(x,y,r,s)=>{const h=FH(x,y,r,{w:2,a:s>=2?1.3:1,b:1,c:1}),e=EX(x,y,r,"relaxed");return [h.ball,h.mid,h.brow,h.jaw,h.hair,h.eyes,h.nose,h.mouth].concat(AGE(x,y,r,s))};
+  const young=mk3(200,150,90,0),mid=mk3(200,150,90,1),old=mk3(200,150,90,2);
+  const hairTop=(a)=>{const h=FH(200,150,90,{a:a});return [h.ball,h.mid,h.brow,h.hair,h.jaw]};
+  const cards=[
+    prob("Your old people look like young people with lines drawn on.",null),
+    why("Age isn't a surface. The flesh shrinks and sags and the bone shows through. You have to age the forms, not draw wrinkles on top.",null),
+  ].concat(fixes([
+    ["Age a face by adding the forms of the shrinking muscles and the creases that fall between them. The construction stays the same.",old,undefined],
+    ["The cheekbones, the corners of the jaw and the bone of the chin become more evident. The cartilage of the nose and the ears seems to grow.",old,undefined],
+    ["The main change is in the cheeks and around the eyes and mouth. The flesh sags at the sides of the chin and along the jaw.",old,["sag","mouthline"]],
+    ["Pouches form under the eyes, with deeper lines at the corners. The flesh above the lids droops, and the brows seem to drop in toward the bridge of the nose.",old,["pouch","crow"]],
+    ["The lips get thinner and move inward, giving more of a straight line between them. Lines run from the corners of the mouth down around the chin.",old,["mouthline"]],
+    ["The hairline moves up and back, and the hair thins at the top. A few deeper lines cross the forehead and sit between the brows. Subordinate them.",old,["forehead","forehead2"]]
+  ]));
+  cards[0].parts=young.concat([TXT(200,264,"young face, lines added",{fs:18,o:.6})]);
+  cards[1].parts=young;
+  const op=[CAP(young[0],"A young face."),...young.slice(1),CAP(mid[8],"Add the forms of age: pouches, creases."),...mid.slice(9),CAP(old[11],"More sag. Deeper lines."),old[12],old[13]];
+  mk(31,"Drawing Faces of Different Ages","Age the forms, not the surface.",20,cards,
+    "Draw one head three times on the same construction: young, middle-aged, old. Move the forms first, then add only the main creases. Then do it again with a head from life.",
+    op,G3((x,i)=>mk3(x,150,58,i)));
+})();
+
+/*@@end4*/
+
+/*@@batch5*/
+/* ===================== batch 5: lessons 32-39 (tone and character) ===================== */
+// shadow strokes on the right side of a front head (light from upper left)
+function SHADEFACE(cx,cy,r,n,tag){
+  return HATCH(cx+.36*r,cy-.45*r,.46*r,.12*r,0,1.5*r,n||8,tag||"tone",{w:1.5});
+}
+// under-chin and under-brow cast shadow strokes
+function CASTFACE(cx,cy,r,tag){
+  return HATCH(cx-.5*r,cy+1.0*r,1.0*r,.0,0,.28*r,4,tag||"cast",{w:1.4,col:ACC});
+}
+const SPLIT=(h)=>[h.ball,h.mid,h.brow,h.jaw,h.eyes,h.nose,h.mouth];
+
+/* ===================== lesson 32 ===================== */
+(function(){
+  const pl=PL(200,150,90);
+  const sh=SHADE(200,150,90);
+  const toneBars=[0,1,2].map(i=>QUAD(60+i*100,110,70,0,0,80,"bar"+i,{w:2}));
+  const lightBar=QUAD(40,110,70,0,0,80,"light",{w:2});
+  const half=HATCH(140,110,70,0,0,80,5,"half",{w:1.4,o:.8});
+  const dark=HATCH(240,110,70,0,0,80,12,"dark",{w:1.5});
+  const bars=[lightBar,QUAD(140,110,70,0,0,80,"halfbox",{w:2}),QUAD(240,110,70,0,0,80,"darkbox",{w:2}),half,dark];
+  const onelight=[LN(ELL(110,150,50,50),"a",{w:2.4}),{k:"d",cx:40,cy:60,r:9,col:ACC,tag:"sun"},LN("M 52 68 L 82 96","ray",{col:ACC,w:2,dash:"4 5"})];
+  const twolights=[LN(ELL(290,150,50,50),"b",{w:2.4}),{k:"d",cx:360,cy:60,r:9,col:ACC,tag:"sun2"},{k:"d",cx:230,cy:60,r:9,col:ACC,tag:"sun3"},LN("M 348 68 L 322 96 M 242 68 L 268 96","ray2",{col:ACC,w:2,dash:"4 5"})];
+  const ph=[LN(ELL(200,150,92,92),"flat",{w:2.4,o:.6}),TXT(200,158,"no form",{fs:20,o:.5})];
+  const cards=[
+    prob("You add tone and the head goes flat. Or it turns to mud.",null),
+    why("Tone is the effect of light on form. Form exists only as light, halftone and shadow define it. Without the light there would be no form to see.",null),
+  ].concat(fixes([
+    ["As a basis, turn back to the planes of the head in Plate 9 and draw them. This lesson builds on that.",pl,undefined],
+    ["Think in flat areas of varying tone. Forget surface wrinkles entirely. Shadows are shapes, and they lie on top of the shape of the form.",pl.concat([SHADEFACE(200,150,90,8)]),["tone"]],
+    ["Hold the light to one source at first. Two lights cut up the shadow tones and make everything more complicated.",onelight.concat(twolights),["sun","sun2","sun3","ray","ray2"]],
+    ["Later you may add a back light. Never let both lights fall on the same area. That gives false-looking form.",onelight.concat(twolights),["sun2","sun3"]],
+    ["The shadows get darker as the form turns away from the light. Light, halftone, shadow.",bars,["half","dark"]],
+    ["A round form passes through halftone before it reaches shadow. Light the subject strongly, or pick one in simple light and shadow.",sh,["half","shadow"]]
+  ]));
+  cards[0].parts=ph;cards[1].parts=sh;
+  const op=[CAP(sh[0],"A ball in light."),CAP(sh[1],"Halftone, where the form turns away."),CAP(sh[2],"Shadow, where it has turned the most."),CAP(pl[0],"The head, in planes."),...pl.slice(1),SHADEFACE(200,150,90,8)];
+  mk(32,"Modeling the Planes","Light one head from one side.",15,cards,
+    "Draw the planes of the head from Plate 9. Light a real object from one lamp, then draw it as flat areas in three tones: light, halftone, shadow. Forget the wrinkles. Then do a ball and a box.",
+    op,G3((x,i)=>i===1?SHADE(x,150,52):[LN(ELL(x,150,52,52),"b",{w:2}),SHADEFACE(x,150,52,6)]));
+})();
+
+/* ===================== lesson 33 ===================== */
+(function(){
+  const h=FH(200,150,90),m=MUS(200,150,90),s=SKULL(200,140,84);
+  const pl=PL(200,150,90);
+  const stage1=[h.ball,h.mid,h.brow,h.hair,h.nb,h.chin];
+  const stage2=[s.cranium,s.sides,s.sockets,s.cheeks,s.nose,s.jaw].concat([m.masseter,m.orbEye,m.orbMouth,m.happy,m.unhappy]);
+  const stage3=[h.ball,h.jaw,h.ears,h.eyes,h.nose,h.mouth,h.hair];
+  const stage5=stage3.concat([SHADEFACE(200,150,90,8),CASTFACE(200,150,90)]);
+  const cards=[
+    prob("You can do each piece alone: construction, anatomy, planes, rendering. Put them together and the head falls apart.",null),
+    why("A finished head carries all of it at once. Each stage has to be right before the next goes on, or the errors stack.",null),
+  ].concat(fixes([
+    ["Stage one: the plan of construction. The ball, the middle line and the brow line, with the three equal spaces.",stage1,undefined],
+    ["Stage two: the anatomy. The bone and the muscles, set in the construction. You won't see them in the end, but they decide the surface.",stage2,undefined],
+    ["Stage three: the outline. The jaw, the ears, the features, the hair. Now it's a head.",stage3,undefined],
+    ["Stage four: the planes. Break the surface into flat facets.",pl,undefined],
+    ["Stage five: the finish. Light, halftone and shadow laid on the planes.",stage5,["tone","cast"]],
+    ["Don't copy this head. Draw your own through every stage, paste the stages on a sheet, and hang it where you work.",stage3.concat(stage1),undefined]
+  ]));
+  cards[0].parts=stage3.concat([TXT(200,264,"pieces",{fs:20,o:.6})]);cards[1].parts=stage1.concat(stage3);
+  const op=[CAP(stage1[0],"One: construction."),...stage1.slice(1),CAP(stage2[0],"Two: anatomy."),...stage2.slice(1),CAP(stage3[0],"Three: the outline."),...stage3.slice(1),CAP(pl[1],"Four: the planes."),pl[2],pl[3],CAP(stage5[stage5.length-2],"Five: the finish."),stage5[stage5.length-1]];
+  mk(33,"Combining Anatomy, Construction, and Planes","Take one head through every stage.",25,cards,
+    "Choose one head from a photograph or from life. In separate drawings, work out what you believe are its proportions, its anatomy, its planes, and then the finish. Paste the stages on one sheet and hang it where you work. Don't trace anything.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2});return i===0?[t.ball,t.mid,t.brow,t.hair,t.nb,t.chin]:i===1?[t.ball,t.jaw,t.eyes,t.nose,t.mouth,t.ears]:[t.ball,t.jaw,t.eyes,t.nose,t.mouth,t.ears,SHADEFACE(x,150,58,6)]}));
+})();
+
+/* ===================== lesson 34 ===================== */
+(function(){
+  const light=QUAD(50,90,90,0,0,100,"p1",{w:2}),mid=QUAD(150,90,90,0,0,100,"p2",{w:2}),dark=QUAD(250,90,90,0,0,100,"p3",{w:2});
+  const hl=HATCH(50,90,90,0,0,100,3,"h1",{w:1.3,o:.7}),hm=HATCH(150,90,90,0,0,100,7,"h2",{w:1.5}),hd=HATCH(250,90,90,0,0,100,13,"h3",{w:1.6});
+  const turn=[QUAD(60,100,100,0,0,90,"t1",{w:2}),HATCH(60,100,100,-14,0,90,8,"d1",{w:1.5}),QUAD(180,100,100,0,0,90,"t2",{w:2}),HATCH(180,100,100,14,0,90,8,"d2",{w:1.5})];
+  const flatSmooth=[LN(ELL(100,150,70,70),"smooth",{w:2.4}),TXT(100,262,"smooth",{fs:18,o:.6}),LN(ELL(300,150,70,70),"planed",{w:2.4}),HATCH(240,100,56,-8,0,100,6,"p",{w:1.5}),TXT(300,262,"planes held",{fs:18,o:.6})];
+  const round=SHADE(110,150,64),box=[QUAD(230,100,80,0,0,100,"bf",{w:2}),QUAD(310,100,0,0,0,100,"bz",{w:0}),LN("M 230 100 l 40 -26 h 80 l -40 26 M 350 74 v 100 l -40 26","bs",{w:2}),HATCH(310,100,40,-26,0,100,10,"bsh",{w:1.5})];
+  const nose=[LN("M 170 90 L 160 190 L 200 200 L 240 190 L 230 90","nose",{w:2.4}),HATCH(206,110,20,-4,0,70,6,"ns",{w:1.5}),HATCH(160,200,90,0,0,40,5,"cast",{w:1.4,col:ACC})];
+  const cards=[
+    prob("You blend everything smooth. The planes melt and the head looks soft and photographic.",null),
+    why("If you soften an edge so much that you lose the plane, the drawing goes smooth and photographic. Ask yourself: am I holding the evidence of the plane, or have I lost it?",null),
+  ].concat(fixes([
+    ["Treat each plane as a straight, flat surface with its own value between light and dark.",[light,mid,dark,hl,hm,hd],["h1","h2","h3"]],
+    ["The very light planes get very little tone, handled delicately. Make the planes in the light a little lighter than they look, and the ones in shadow a little darker. That is where solidity comes from.",[light,mid,dark,hl,hm,hd],undefined],
+    ["Use the direction of the stroke to turn a plane, with hardly any change in value. Strokes follow the plane. It's why a pen drawing can look so solid.",turn,["d1","d2"]],
+    ["On a round form the halftone merges into the shadow. On a square form the shadow follows the edge sharply. The cheeks blend. The nose casts a shadow.",round.concat(box),undefined],
+    ["A cast shadow runs on to another plane: the wall, or down the neck under the chin. It has its own edge, set by the direction of the light.",nose,"cast"],
+    ["Working from a photograph? Establish the planes yourself. They aren't apparent in the photograph.",flatSmooth,undefined]
+  ]));
+  cards[0].parts=flatSmooth.slice(0,2);cards[1].parts=flatSmooth;
+  const turn2=[QUAD(60,208,100,0,0,70,"t1",{w:2}),HATCH(60,208,100,-14,0,70,7,"d1",{w:1.5}),QUAD(180,208,100,0,0,70,"t2",{w:2}),HATCH(180,208,100,14,0,70,7,"d2",{w:1.5})];
+  const op=[CAP(light,"Each plane is flat, with a value of its own."),hl,mid,hm,dark,hd,CAP(turn2[0],"The stroke turns the plane."),turn2[1],turn2[2],turn2[3]];
+  mk(34,"Building Tone with Planes","Let the strokes show the planes.",20,cards,
+    "Draw a box and a ball from a single lamp. Fill each plane with its own tone using strokes that follow the plane's direction. Don't blend. Then draw the planes of a head the same way.",
+    op,G3((x,i)=>i===0?SHADE(x,150,50):[QUAD(x-45,105,70,0,0,80,"q",{w:2}),HATCH(x-45,105,70,-10*i,0,80,8,"h",{w:1.5})]));
+})();
+
+/* ===================== lesson 35 ===================== */
+(function(){
+  const vs=[{a:1.4,b:.8,c:1},{a:.8,b:1.2,c:1.3},{a:1,b:.9,c:.8},{a:1.2,b:1.1,c:1.5},{a:.9,b:.8,c:1.1},{a:1.1,b:1.3,c:.9}];
+  const small=(x,y,i)=>{const h=FH(x,y,32,Object.assign({w:1.8},vs[i]));return [h.ball,h.mid,h.brow,h.hair,h.nb,h.chin,h.jaw,h.eyes,h.nose,h.mouth]};
+  const grid=[].concat(...vs.map((v,i)=>small(70+(i%3)*130,95+Math.floor(i/3)*110,i)));
+  const one=(()=>{const h=FH(200,150,90,vs[0]);return [h.ball,h.mid,h.brow,h.hair,h.nb,h.chin,h.jaw,h.eyes,h.nose,h.mouth,h.ears]})();
+  const cards=[
+    prob("You draw the face you drew last time. Every head gets the same nose.",null),
+    why("Skulls and features vary, and so does the spacing between them. Millions of combinations occur. A habit ignores all of them.",null),
+  ].concat(fixes([
+    ["Every head is an assembly of shapes, lines and spaces. It's an individual one.",grid,undefined],
+    ["Forget every other face. Concentrate on the one in front of you.",one,undefined],
+    ["Accent the individual forms wherever you can. Where does this face differ from the stock face?",one,["nb","chin","hair"]],
+    ["Start drawing real people. Collect clippings and photographs to practice from. Don't be tempted to trace. Just draw.",grid,undefined]
+  ]));
+  cards[0].parts=small(200,150,2).map(p=>p).concat([TXT(200,264,"same face again",{fs:18,o:.6})]);
+  const bigSame=(()=>{const h=FH(200,150,90);return [h.ball,h.mid,h.brow,h.eyes,h.nose,h.mouth,h.jaw,TXT(200,274,"same face again",{fs:18,o:.6})]})();
+  cards[0].parts=bigSame;cards[1].parts=grid;
+  const op=[CAP(grid[0],"Six heads.")].concat(grid.slice(1,10),[CAP(grid[10],"Six different problems.")],grid.slice(11));
+  mk(35,"Every Head Is a Separate Problem","See the one head in front of you.",20,cards,
+    "Collect ten photographs or clippings of faces. Draw each one from scratch. Before each, write one sentence about what is different about it. Don't trace, and don't reuse the last head's features.",
+    op,G3((x,i)=>{const h=FH(x,150,58,Object.assign({w:2},vs[i]));return [h.ball,h.mid,h.brow,h.hair,h.nb,h.chin,h.jaw]}));
+})();
+
+/* ===================== lesson 36 ===================== */
+(function(){
+  const h=FH(200,150,90,{a:1.2,b:1,c:1.15});
+  const line=[h.ball,h.mid,h.brow,h.jaw,h.eyes,h.nose,h.mouth,h.ears,h.hair];
+  const toned=line.concat([SHADEFACE(200,150,90,8),CASTFACE(200,150,90)]);
+  const half=line.concat([HATCH(236,70,50,10,0,150,10,"halfmark",{w:1.5})]);
+  const cards=[
+    prob("The head is right but dead. All the information is there and nobody would want to look at it.",null),
+    why("Character comes from the bones and muscles. Beauty comes from how you handle the line and the tone. They're two separate things.",null),
+  ].concat(fixes([
+    ["The character in a head is a result of the individual bones and muscles, shown through careful construction and spacing.",line,undefined],
+    ["The beauty of the drawing is in how you use line and tone, and how you interpret the light and shadow on the forms.",toned,["tone","cast"]],
+    ["Experiment in your own way. Develop your own approach and technique.",toned,undefined],
+    ["Sometimes an unfinished study is more attractive than a completely finished drawing. Know when to stop.",half,"halfmark"]
+  ]));
+  cards[0].parts=line.concat([TXT(200,264,"all correct, no life",{fs:18,o:.6})]);cards[1].parts=toned;
+  const op=[CAP(line[0],"Construction and spacing give the character."),...line.slice(1),CAP(toned[toned.length-2],"Line and tone give the beauty."),toned[toned.length-1]];
+  mk(36,"Types of Character","Build the character, then find your own way to render it.",20,cards,
+    "Draw four different men, each with a different construction. Render each one differently: line only, line and flat tone, a quick wash of tone, a half-finished study. Decide which one you like best and why.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2,a:[1.2,.9,1.1][i],b:[1,1.2,.9][i],c:[1.15,1,1.3][i]});return [t.ball,t.mid,t.brow,t.jaw,t.eyes,t.nose,t.mouth].concat(i>0?[SHADEFACE(x,150,58,6)]:[])}));
+})();
+
+/* ===================== lesson 37 ===================== */
+(function(){
+  const h=FH(200,150,90),m=MUS(200,150,90),sm=EX(200,150,90,"smile"),lg=EX(200,150,90,"laugh");
+  const base=[h.ball,h.mid,h.brow,h.jaw];
+  const face=e=>base.concat([e.brows,e.eyes,e.mouth],e.extra);
+  const corner=LN(`M ${200-.45*90} ${150+.5*90} Q ${200-.3*90} ${150+.75*90} ${200-.4*90} ${150+.95*90}`,"corner",{col:ACC,w:3});
+  const cheek=LN(`M ${200-.55*90} ${150+.25*90} Q ${200-.62*90} ${150+.5*90} ${200-.4*90} ${150+.6*90} M ${200+.55*90} ${150+.25*90} Q ${200+.62*90} ${150+.5*90} ${200+.4*90} ${150+.6*90}`,"cheek",{col:ACC,w:3});
+  const cards=[
+    prob("Your smiling man looks like he's wincing. Or like he was told to smile.",null),
+    why("A smile that radiates happiness is difficult for any artist. It comes from the corners of the mouth and the shape of the cheeks, and it has to come from the subject.",null),
+  ].concat(fixes([
+    ["Smiles are much easier to draw in outline than in tone. Start with line.",face(sm),undefined],
+    ["Study the forms around the corners of the mouth: where the lips end, and where the cheek folds around them.",face(sm).concat([corner]),"corner"],
+    ["Then the cheeks. They bulge and buckle upward under the smile.",face(sm).concat([cheek]),"cheek"],
+    ["A model can't hold a genuine smile for long. If you draw heads for a living, practice from clippings.",face(lg),undefined]
+  ]));
+  cards[0].parts=face(EX(200,150,90,"relaxed")).concat([LN("M 150 214 q 14 8 28 0 M 222 214 q 14 8 28 0","wince",{w:3,col:ACC})]);
+  cards[1].parts=face(sm);
+  const op=[CAP(face(sm)[0],"A man smiling."),...face(sm).slice(1),CAP(corner,"Study the corners of the mouth."),CAP(cheek,"And the cheeks.")];
+  mk(37,"Smiling Men","Make the smile belong to the cheeks.",15,cards,
+    "Collect six clippings of men smiling. Draw each one in outline first, then in tone. Pay particular attention to the corners of the mouth and to the cheeks. Which version, line or tone, is harder?",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2}),e=EX(x,150,58,i===1?"laugh":"smile");return [t.ball,t.mid,t.brow,t.jaw,e.brows,e.eyes,e.mouth].concat(e.extra)}));
+})();
+
+/* ===================== lesson 38 ===================== */
+(function(){
+  const h=FH(200,150,90),a=AGE(200,150,90,2),m=MUS(200,150,90);
+  const base=[h.ball,h.mid,h.brow,h.jaw,h.eyes,h.nose,h.mouth];
+  const tiny=(()=>{let d="";for(let i=0;i<26;i++){const x=130+(i*37)%140,y=80+(i*53)%120;d+=`M ${x} ${y} l ${4+i%3*3} ${(i%2?3:-3)} `}return LN(d,"tiny",{w:1.2,o:.8})})();
+  const forms=[a[2],a[3],a[1]];
+  const cards=[
+    prob("The old man has been drawn wrinkle by wrinkle. You can count them, and none of them tell you anything.",null),
+    why("An older face gives you more to get hold of: forms and lines. The incidental wrinkles add nothing and bury the forms.",null),
+  ].concat(fixes([
+    ["Look for the forms. The cheekbones, the jaw corners, the bone of the chin. The older the face, the more they show.",base.concat([a[3]]),"sag"],
+    ["State only the main lines: the long creases of the cheeks, around the mouth, over and under the eyes.",base.concat([a[2],a[1]]),["mouthline","pouch"]],
+    ["Eliminate most of the surface wrinkles. The impression of age holds without them.",base.concat(a),undefined],
+    ["The muscles are quite pronounced in a man's face. A strong face is mostly bone and muscle.",base.concat([m.masseter,m.happy,m.unhappy]),undefined]
+  ]));
+  cards[0].parts=base.concat([tiny]);cards[1].parts=base.concat([tiny]);
+  const op=[CAP(base[0],"An old man."),...base.slice(1),CAP(tiny,"Not every wrinkle."),CAP(a[2],"The main creases."),a[1],a[3],CAP(a[5],"And that's enough.")];
+  mk(38,"Older Men","State the forms and the main lines. Stop.",15,cards,
+    "Draw four old men from life or from clippings. For each, mark the bones and the muscles lightly, then state only the main lines and forms. Count how many wrinkles you left out, and see if the age still shows.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2,a:[1,1.15,.95][i]}),aa=AGE(x,150,58,2);return [t.ball,t.mid,t.brow,t.jaw,t.eyes,t.nose,t.mouth,aa[2],aa[3]]}));
+})();
+
+/* ===================== lesson 39 ===================== */
+(function(){
+  const h=FH(200,150,90),m=MUS(200,150,90);
+  const base=[h.ball,h.mid,h.brow,h.jaw];
+  const rx=EX(200,150,90,"relaxed"),an=EX(200,150,90,"anger"),la=EX(200,150,90,"laugh");
+  const face=(e,extra)=>base.concat([e.brows,e.eyes,e.mouth],e.extra,extra||[]);
+  const cards=[
+    prob("The construction is right, the lighting is right, and the face has no moment in it.",null),
+    why("Expression is no more than a distortion of the relaxed forms. If you don't know which muscles pull which forms, you can only guess at the distortion.",null),
+  ].concat(fixes([
+    ["Start with the relaxed face: the construction, the planes, the light.",face(rx,[SHADEFACE(200,150,90,8)]),undefined],
+    ["An expression pulls those forms out of place. The muscle underneath moves, and the surface above it changes.",face(an,[m.wrinkleBrow]),"wrinkleBrow"],
+    ["Know the muscles. A smile, a frown, a laugh: each one is a short list of muscles and where they pull.",face(la,[m.happy,m.unhappy]),["happy","unhappy"]],
+    ["Put it together: construction, lighting and expression. That's characterization: the way a face looks at a given moment.",face(la,[SHADEFACE(200,150,90,8),CASTFACE(200,150,90)]),undefined]
+  ]));
+  cards[0].parts=face(rx,[SHADEFACE(200,150,90,8),TXT(200,274,"no moment in it",{fs:18,o:.6})]);cards[1].parts=base.concat([m.happy,m.unhappy,m.wrinkleBrow]);
+  const op=[CAP(face(rx)[0],"A relaxed face."),...face(rx).slice(1),CAP(an.brows,"Pull the muscles."),an.eyes,an.mouth,...an.extra,CAP(SHADEFACE(200,150,90,8),"Add the light. That's characterization.")];
+  mk(39,"Characterization","Combine construction, light and expression.",25,cards,
+    "Pick one expression and one light. Draw a head with its construction, then pull the muscles for the expression, then add the light. Do three versions: surprise, anger, laughter. Each should look like a moment, not a pose.",
+    op,G3((x,i)=>{const t=FH(x,150,58,{w:2}),e=EX(x,150,58,["anger","laugh","worry"][i]);return [t.ball,t.mid,t.brow,t.jaw,e.brows,e.eyes,e.mouth,SHADEFACE(x,150,58,6)].concat(e.extra)}));
+})();
+
+/*@@end5*/
+
+/*@@batch6*/
+/* ===================== batch 6: lessons 40-50 (women's heads) ===================== */
+const BJ=(cx,cy,r,o)=>LN(`M ${cx-.82*r} ${cy+.25*r} L ${cx-.74*r} ${cy+.8*r} L ${cx-.34*r} ${cy+1.0*r} L ${cx+.34*r} ${cy+1.0*r} L ${cx+.74*r} ${cy+.8*r} L ${cx+.82*r} ${cy+.25*r}`,"blockjaw",o);
+const FIRMJ=(cx,cy,r,o)=>LN(`M ${cx-.82*r} ${cy+.24*r} C ${cx-.8*r} ${cy+.74*r} ${cx-.58*r} ${cy+.98*r} ${cx-.26*r} ${cy+1.01*r} L ${cx+.26*r} ${cy+1.01*r} C ${cx+.58*r} ${cy+.98*r} ${cx+.8*r} ${cy+.74*r} ${cx+.82*r} ${cy+.24*r}`,"firmjaw",o);
+// hair: round mass or blocky planes
+function HAIRC(cx,cy,r,o){return LN(`M ${cx-.95*r} ${cy+.5*r} C ${cx-1.4*r} ${cy-.4*r} ${cx-.9*r} ${cy-1.3*r} ${cx} ${cy-1.2*r} C ${cx+.9*r} ${cy-1.3*r} ${cx+1.4*r} ${cy-.4*r} ${cx+.95*r} ${cy+.5*r} M ${cx} ${cy-1.2*r} Q ${cx-.2*r} ${cy-.8*r} ${cx-.3*r} ${cy-.55*r}`,"hairmass",o)}
+function HAIRB(cx,cy,r,o){return LN(`M ${cx-.95*r} ${cy+.5*r} L ${cx-1.1*r} ${cy-.3*r} L ${cx-.7*r} ${cy-1.1*r} L ${cx+.7*r} ${cy-1.1*r} L ${cx+1.1*r} ${cy-.3*r} L ${cx+.95*r} ${cy+.5*r} M ${cx-.3*r} ${cy-1.1*r} L ${cx-.2*r} ${cy-.55*r} M ${cx-.7*r} ${cy-1.1*r} L ${cx-.6*r} ${cy-.5*r}`,"hairplanes",o)}
+const FACEF=(h,extra)=>[h.ball,h.mid,h.brow,h.jaw,h.brows,h.eyes,h.nose,h.mouth,h.ears].concat(extra||[]);
+const FEM=(x,y,r,o)=>FF(x,y,r,Object.assign({w:2},o||{}));
+
+/* ===================== lesson 40 ===================== */
+(function(){
+  const f=FF(200,150,90),m=FH(200,150,90);
+  const sideBy=(()=>{const a=FH(110,150,62,{w:2}),b=FF(290,150,62,{w:2});return [a.ball,a.mid,a.brow,a.jaw,a.eyes,a.nose,a.mouth,b.ball,b.mid,b.brow,b.jaw,b.brows,b.eyes,b.nose,b.mouth]})();
+  const maleBrow=LN("M 142 140 q 12 -6 24 0 M 234 140 q 12 -6 24 0","malebrow",{dash:"4 5",o:.7});
+  const cards=[
+    prob("Your women come out looking like men with longer hair.",null),
+    why("The overall proportions barely change. What changes is how much bone and muscle shows, and the size and shape of a few features.",null),
+  ].concat(fixes([
+    ["Start from the same ball, the same middle line and the same three spaces. The overall proportions of the female head vary only slightly from the male.",[f.ball,f.mid,f.brow,f.hair,f.nb,f.chin],undefined],
+    ["The bone and muscle structure is lighter and less prominent. Don't stress the jaw and cheek muscles.",FACEF(f).concat([BJ(200,150,90,{dash:"4 5",o:.6,col:ACC})]),["jaw"]],
+    ["In commercial art, feminine types with rather firm jaws have more appeal than the very rounded ones.",[f.ball,f.mid,f.brow,f.brows,f.eyes,f.nose,f.mouth,f.ears,FIRMJ(200,150,90)],"firmjaw"],
+    ["A woman's eyebrows are usually a little higher above the eyes than a man's. The eyes are slightly larger.",FACEF(f).concat([maleBrow]),["brows","eyes"]],
+    ["The mouth is smaller, and the lips are fuller and more rounded.",FACEF(f),["mouth"]]
+  ]));
+  cards[0].parts=[m.ball,m.mid,m.brow,m.jaw,m.eyes,m.nose,m.mouth,HAIRC(200,150,90),TXT(200,276,"a man, with longer hair",{fs:18,o:.6})];
+  cards[1].parts=sideBy;
+  const op=[CAP(sideBy[0],"A man's head."),...sideBy.slice(1,7),CAP(sideBy[7],"A woman's, on the same plan."),...sideBy.slice(8)];
+  mk(40,"Constructing the Female Head","Same plan, lighter touch.",20,cards,
+    "Draw the same ball and the same three spaces twice, side by side. Make one a man and one a woman. Change only what the book changes: a lighter jaw, brows a little higher, larger eyes, a smaller and fuller mouth. Keep the jaw and cheek muscles quiet.",
+    op,G3((x,i)=>{const t=i===1?FF(x,150,58,{w:2}):FH(x,150,58,{w:2});return [t.ball,t.mid,t.brow,t.jaw,t.eyes,t.nose,t.mouth]}));
+})();
+
+/* ===================== lesson 41 ===================== */
+(function(){
+  const f=FF(200,150,90);
+  const lipHi=LN(`M ${200-.08*90} ${150+.7*90+.02*90} q ${.08*90} ${.04*90} ${.16*90} 0`,"lipHi",{col:ACC,w:3.4});
+  const nostrils=LN(`M ${200-.18*90} ${150+.5*90} l ${-.05*90} ${.02*90} M ${200+.18*90} ${150+.5*90} l ${.05*90} ${.02*90}`,"nostril",{col:ACC,w:3});
+  const flatLip=LN(`M ${200-.22*90} ${150+.7*90} L ${200+.22*90} ${150+.7*90}`,"flatlip",{w:3});
+  const base=FACEF(f);
+  const cards=[
+    prob("A pretty woman comes out odd. Nothing is exactly wrong, and nothing is right.",null),
+    why("Beauty of face is beauty of proportion. There's nowhere to hide. An eye a little off or a mouth a little wrong gives a strange and unpleasant result.",null),
+  ].concat(fixes([
+    ["Construction and placement come first. It is almost impossible to draw a beautiful woman unless they're accurate.",[f.ball,f.mid,f.brow,f.hair,f.nb,f.chin],undefined],
+    ["Keep the nostrils small. Watch the placement of the jaw and the ears.",base.concat([nostrils]),["nostril","jaw","ears"]],
+    ["The eyes and mouth must be in perfect placement and drawing.",base,["eyes","mouth"]],
+    ["Brows and lips follow fashion, and so do hairdos. Fashion magazines keep you current. Look for the mass of the hair, not the detail.",base.concat([HAIRC(200,150,90)]),["hairmass"]],
+    ["Don't draw flat lips. Place the highlight on the lip very accurately. In the wrong place it can change the mouth and the whole expression.",[f.mouth,lipHi,nostrils].map(p=>p),["lipHi"]]
+  ]));
+  cards[0].parts=[f.ball,f.mid,f.brow,LN("M 150 172 q 14 -9 28 0 q -14 9 -28 0 M 218 160 q 14 -9 28 0 q -14 9 -28 0","odd"),LN("M 168 218 q 36 18 70 -6","oddm"),TXT(200,276,"nothing exactly wrong",{fs:18,o:.6})];
+  cards[1].parts=base;
+  const op=[CAP(f.ball,"Construction first."),f.mid,f.brow,f.hair,f.nb,f.chin,CAP(f.jaw,"The jaw and the ears."),f.ears,CAP(f.eyes,"The eyes and the mouth, exactly placed."),f.mouth,CAP(nostrils,"Small nostrils."),f.nose,CAP(lipHi,"And the highlight on the lip, exactly placed.")];
+  mk(41,"Establish the Construction of Each Head","Beauty is proportion. Place everything exactly.",20,cards,
+    "Draw four women's heads from fashion pages. For each, build the construction first and check the placement of the eyes, mouth, jaw and ears against it before you draw any detail. Then place the highlight on the lips and move it once to see what changes.",
+    op,G3((x,i)=>{const t=FF(x,150,58,{w:2});return [t.ball,t.mid,t.brow,t.hair,t.nb,t.chin,t.jaw]}));
+})();
+
+/* ===================== lesson 42 ===================== */
+(function(){
+  const f=FF(200,150,90),m=MUS(200,150,90),male=FH(110,150,62,{w:2}),fem=FF(290,150,62,{w:2});
+  const maleP=PL(110,150,62),femPlain=[fem.ball,fem.mid,fem.brow,fem.jaw,fem.eyes,fem.nose,fem.mouth];
+  const round=[LN(ELL(110,150,66,66),"round",{w:2.6}),TXT(110,264,"round",{fs:18,o:.6})];
+  const square=[LN("M 244 84 h 132 v 132 h -132 z","square",{w:2.6}),TXT(310,264,"square",{fs:18,o:.6})];
+  const cards=[
+    prob("Your young woman has the cheekbones and jaw muscle of an old soldier. Or she has no structure at all, and no head.",null),
+    why("The anatomy is the same underneath. How much of it shows on the surface is different. You have to know it to hide it.",null),
+  ].concat(fixes([
+    ["The underlying anatomy of a girl's head is the same bone and muscle. Learn it, even if you will hardly show it.",FACEF(f).concat([m.masseter,m.orbEye,m.orbMouth,m.happy,m.unhappy]),["masseter","happy","unhappy"]],
+    ["In a fairly young woman, let very little of it show. The surface has to be convincing, and you know what lies below.",FACEF(f),undefined],
+    ["Put a man and a woman side by side, same pose. The man has heavier bone and muscle, and more obvious planes.",maleP.concat(femPlain),undefined],
+    ["The woman's mouth and nose are handled more delicately than the man's. The feeling of planes is in both, but stressed more in the man.",femPlain,["nose","mouth"]],
+    ["Smoothness and roundness are basically female. Squareness and angularity are basically male. How much of either you use is up to your feeling about the subject.",round.concat(square),undefined]
+  ]));
+  cards[0].parts=[BJ(200,150,90),LN(ELL(200,150,60,60),"x"),TXT(200,276,"all bone",{fs:18,o:.6})];
+  cards[1].parts=FACEF(f).concat([m.masseter,m.happy,m.unhappy]);
+  const op=[CAP(maleP[0],"A man's head: heavier planes."),...maleP.slice(1),CAP(femPlain[0],"A woman's, same pose: less bone and muscle showing."),...femPlain.slice(1)];
+  mk(42,"Bone and Muscle Are Less Apparent in Women's Heads","Know the anatomy. Show less of it.",20,cards,
+    "Draw one pose twice: first a man, with the planes stated, then a woman, with the planes felt but quieter. Use the same ball and the same spacing. Make her mouth and nose more delicate. Then draw the anatomy under a girl's head, lightly, and cover it.",
+    op,G3((x,i)=>i===1?FACEF(FF(x,150,58,{w:2})):PL(x,150,58)));
+})();
+
+/* ===================== lesson 43 ===================== */
+(function(){
+  const f=FF(200,150,90);
+  const base=FACEF(f);
+  const strands=(()=>{let d="";for(let i=0;i<26;i++){const x=80+i*9;d+=`M ${x} 70 q ${i%2?14:-14} 70 ${i%3*10-10} 150 `}return LN(d,"strands",{w:1.1,o:.8})})();
+  const cards=[
+    prob("You draw every strand of hair, and the face behind it disappears.",null),
+    why("The camera sees everything in its roundness. The artist sees the rhythms and the angles. Strands are the camera's habit.",null),
+  ].concat(fixes([
+    ["Use freedom and looseness of technique in the hair.",base.concat([HAIRC(200,150,90)]),"hairmass"],
+    ["Simple planes are usually much more effective than a photographic rendering of every strand or curl.",base.concat([HAIRB(200,150,90)]),"hairplanes"],
+    ["Look for the mass effect of the forms in the hair, rather than the detail.",base.concat([HAIRC(200,150,90),HAIRB(200,150,90,{dash:"4 5",o:.6,col:ACC})]),undefined],
+    ["The charm is in the basic drawing: the construction, the spacing and the planes. If they're right, a few lines of hair will do.",base.concat([HAIRB(200,150,90)]),undefined]
+  ]));
+  cards[0].parts=base.concat([strands]);cards[1].parts=[strands,TXT(200,276,"camera habit",{fs:18,o:.6})];
+  const op=[CAP(f.ball,"The head first."),f.mid,f.brow,f.jaw,f.eyes,f.nose,f.mouth,CAP(strands,"Not every strand."),CAP(HAIRB(200,150,90),"A few planes."),CAP(HAIRC(200,150,90),"Or one mass.")];
+  mk(43,"Charm Lies in the Basic Drawing","Draw the hair as mass and planes.",15,cards,
+    "Draw five women's heads from fashion pages. Build each head first, then draw the hair as one or two big masses and a few planes. Don't draw any strands. Compare them to a drawing where you did draw them.",
+    op,G3((x,i)=>{const t=FF(x,150,52,{w:2});return [t.ball,t.mid,t.brow,t.jaw,t.eyes,t.nose,t.mouth,i===1?HAIRB(x,150,52):HAIRC(x,150,52)]}));
+})();
+
+/* ===================== lesson 44 ===================== */
+(function(){
+  const f=FF(200,150,90);
+  const base=[f.ball,f.mid,f.brow,f.brows,f.eyes,f.nose,f.mouth,f.ears];
+  const three=(x,k)=>{const h=FF(x,150,38,{w:1.8}),j=k===0?h.jaw:k===1?FIRMJ(x,150,38):BJ(x,150,38);return [h.ball,h.mid,h.brow,h.brows,h.eyes,h.nose,h.mouth,j]};
+  const cards=[
+    prob("Your woman is all curves. She looks like a balloon with eyes.",null),
+    why("A little masculinity is much more tolerable in a woman than roundness is in a man. The fashion pages favor the lean, angular-jawed, bony types over the purely feminine.",null),
+  ].concat(fixes([
+    ["Apply the blockiness to her too. Give the jaw a plane and let the cheek have a facet.",base.concat([BJ(200,150,90)]),"blockjaw"],
+    ["Bone in the face gives a woman character, just as it does a man.",base.concat([FIRMJ(200,150,90)]),"firmjaw"],
+    ["Keep feeling the planes, only less stressed than in a man. Roundness and squareness together make the head look drawn, not traced.",three(75,0).concat(three(200,1),three(325,2)),undefined],
+    ["How far you go either way is a matter of personal feeling about your subject.",three(75,0).concat(three(200,1),three(325,2)),undefined]
+  ]));
+  cards[0].parts=base.concat([LN(ELL(200,150,92,92),"balloon",{w:2.4,o:.8}),TXT(200,276,"a balloon with eyes",{fs:18,o:.6})]);
+  cards[1].parts=base.concat([FIRMJ(200,150,90)]);
+  const op=[CAP(f.ball,"A round, soft head."),...base.slice(1),CAP(f.jaw,"Round jaw."),CAP(FIRMJ(200,150,90),"A firmer jaw."),CAP(BJ(200,150,90),"A blocky jaw, planes felt.")];
+  mk(44,"\"Blockiness\" Also Applies to Women's Heads","Make her jaw a plane, not a curve.",15,cards,
+    "Draw one woman's head three times with the same features. Give the first a round jaw, the second a firm one, and the third a blocky one with its planes felt. Decide how far you'd go for each subject.",
+    op,G3((x,i)=>three(x,i===0?0:i)));
+})();
+
+/* ===================== lesson 45 ===================== */
+(function(){
+  const vs=[{a:1.2,b:.9,c:1},{a:.9,b:1.1,c:1.2},{a:1.1,b:1,c:.9},{a:1,b:.8,c:1.3},{a:1.3,b:1,c:1.1},{a:.9,b:.9,c:1}];
+  const small=(x,y,i)=>{const h=FF(x,y,32,Object.assign({w:1.8},vs[i]));return [h.ball,h.mid,h.brow,h.hair,h.nb,h.chin,h.jaw,h.eyes,h.nose,h.mouth,i%2?HAIRB(x,y,32):HAIRC(x,y,32)]};
+  const grid=[].concat(...vs.map((v,i)=>small(70+(i%3)*130,95+Math.floor(i/3)*110,i)));
+  const one=(()=>{const h=FF(200,150,90,vs[0]);return FACEF(h,[HAIRC(200,150,90)])})();
+  const cards=[
+    prob("Every girl you draw ends up with the same face and a different hairdo.",null),
+    why("It's the same trap as with the men. The spacing varies from face to face, and a habit ignores it.",null),
+  ].concat(fixes([
+    ["Build each head on its own construction. Vary the three spaces and the shape of the ball.",grid,undefined],
+    ["Keep the features small: small nostrils, a smaller mouth, eyes a little large.",one,["eyes","mouth","nose"]],
+    ["Give the hair as a mass, with a plane or two. Not strands.",one,"hairmass"],
+    ["The book's plates 45 and 46 are technical examples of finished heads. Make a fashion page your plate, and study it the same way.",grid,undefined]
+  ]));
+  cards[0].parts=FACEF(FF(200,150,90),[HAIRC(200,150,90),TXT(200,276,"same face, new hair",{fs:18,o:.6})]);cards[1].parts=grid;
+  const op=[CAP(grid[0],"Six girls.")].concat(grid.slice(1,11),[CAP(grid[11],"Six different constructions.")],grid.slice(12));
+  mk(45,"Some Girls' Heads","Six girls, six constructions.",20,cards,
+    "Take six women's heads from fashion pages. Build the construction of each, noting what is different about the spacing. Then draw each in a simple way: small features, hair as a mass. No two may share a construction.",
+    op,G3((x,i)=>{const h=FF(x,150,58,Object.assign({w:2},vs[i]));return [h.ball,h.mid,h.brow,h.hair,h.nb,h.chin,h.jaw,i%2?HAIRB(x,150,58):HAIRC(x,150,58)]}));
+})();
+
+/* ===================== lesson 46 ===================== */
+(function(){
+  const f=FF(200,150,90);
+  const base=FACEF(f,[HAIRC(200,150,90)]);
+  const soft=SHADEFACE(200,150,90,5,"soft"),hard=SHADEFACE(200,150,90,10,"hard");
+  const cards=[
+    prob("Your girls are all line and no form. Or you tone them like men and they come out looking harsh.",null),
+    why("Line is half the head. Tone on the planes gives the roundness, and a woman's head takes less of it than a man's.",null),
+  ].concat(fixes([
+    ["Pick one light. The same rule as for the men.",base,undefined],
+    ["Put in fewer planes, and make them softer. Keep the feeling of planes without stressing them.",base.concat([soft]),"soft"],
+    ["Keep the light planes light, and the shadow planes only a little darker. Don't force the contrast.",base.concat([soft,CASTFACE(200,150,90)]),["soft","cast"]],
+    ["Don't overdo it. A study with part left unfinished can be more attractive than one that is completely worked.",base.concat([hard]),"hard"]
+  ]));
+  cards[0].parts=base.concat([TXT(200,276,"all line",{fs:18,o:.6})]);cards[1].parts=base.concat([hard]);
+  const op=[CAP(f.ball,"Line first."),...base.slice(1),CAP(soft,"Then a little tone on the planes."),CAP(CASTFACE(200,150,90),"And a cast shadow under the chin.")];
+  mk(46,"More Girls' Heads","Add tone without hardening her.",20,cards,
+    "Draw four women's heads from photographs or life. Render each with a single light and the planes held in light tones. Make one with strong contrast and one with very light contrast. Decide which looks right on her.",
+    op,G3((x,i)=>{const h=FF(x,150,58,{w:2});return [h.ball,h.mid,h.brow,h.jaw,h.eyes,h.nose,h.mouth,HAIRC(x,150,58),SHADEFACE(x,150,58,i===0?4:i===1?7:10)]}));
+})();
+
+/* ===================== lesson 47 ===================== */
+(function(){
+  const swing=LN("M 60 220 C 100 60 160 60 200 70 C 240 60 300 60 340 220","swing",{col:ACC,w:3});
+  const f=FF(200,150,90);
+  const sk=(x,y,r,yaw,pitch)=>{const s=sph(x,y,r,yaw,pitch,{cross:true,w:2});return s};
+  const cards=[
+    prob("You tighten up the moment you start a pretty face, and the drawing dies.",null),
+    why("A quick sketch catches roundness and squareness before you get careful. It's practice at seeing the whole thing, fast.",null),
+  ].concat(fixes([
+    ["Make a great many sketches. From life, and from the wealth of material in magazines.",[f.ball,f.mid,f.brow,f.jaw,HAIRC(200,150,90)],undefined],
+    ["In each, feel both roundness and squareness: the round mass of the hair, the blocky plane of the cheek or the jaw.",[f.ball,f.mid,f.brow,f.jaw,f.eyes,f.nose,f.mouth,HAIRC(200,150,90),HAIRB(200,150,90,{dash:"4 5",col:ACC})],undefined],
+    ["Draw fast: two or three minutes a head. Use the long swinging line from lesson 17.",[swing,f.ball],"swing"],
+    ["Don't erase. Make the next sketch.",[f.ball,f.mid,f.brow],undefined]
+  ]));
+  cards[0].parts=[f.ball,f.mid,f.brow,f.jaw,f.eyes,f.nose,f.mouth,f.ears,HAIRC(200,150,90),LN("M 140 120 l 6 10 M 160 100 l 4 12 M 260 100 l -4 12","fuss",{w:2.4,col:ACC}),TXT(200,276,"too careful",{fs:18,o:.6})];
+  cards[1].parts=[swing,f.ball,f.mid,f.brow];
+  const op=[CAP(f.ball,"Start with the ball."),f.mid,f.brow,CAP(swing,"One long line for the hair."),CAP(f.jaw,"Block in the jaw."),f.eyes,f.nose,f.mouth];
+  mk(47,"Sketches, I","Draw fast. Feel round and square.",20,cards,
+    "Set a timer for three minutes. Sketch a woman's head from a magazine. Next page, next head. Do ten. Don't erase and don't fix. Look for the roundness of the hair and the squareness of the planes in every one.",
+    op,G3((x,i)=>[LN(`M ${x-50} 190 C ${x-40} 70 ${x+40} 70 ${x+50} 190`,"s",{w:2}),LN(ELL(x,140,34,34),"b",{w:2})]));
+})();
+
+/* ===================== lesson 48 ===================== */
+(function(){
+  const poses=[[0,0],[34,6],[-22,22]];
+  const three=poses.map((p,i)=>sph(75+i*125,150,52,p[0],p[1],{w:2}));
+  const f=FF(200,150,90);
+  const cards=[
+    prob("Your sketches all face the same way, at the same angle. It's the same head ten times.",null),
+    why("A pose only changes when you change the construction. A sketch that keeps the same ball keeps the same head.",null),
+  ].concat(fixes([
+    ["Change the pose each time: head-on, three-quarter, tipped, turned.",[].concat(...three),["cross"]],
+    ["In the first thirty seconds, check the ball, the middle line and the brow line. Put the cross where the pose says it goes.",three[1],["cross","mid","brow"]],
+    ["A sketch is the construction with a mood on it. The hair, the roundness and the squareness all hang on the same frame.",[f.ball,f.mid,f.brow,f.jaw,HAIRC(200,150,90),HAIRB(200,150,90,{dash:"4 5",col:ACC})],undefined],
+    ["Make a great many. Roundness and squareness both have to be felt, and the only way is volume.",[].concat(...three),undefined]
+  ]));
+  cards[0].parts=[].concat(...[0,1,2].map(i=>sph(75+i*125,150,52,0,0,{w:2})));cards[1].parts=cards[0].parts;
+  const op=[CAP(three[0][0],"Head-on.")].concat(three[0].slice(1),[CAP(three[1][0],"Turned.")],three[1].slice(1),[CAP(three[2][0],"Tipped.")],three[2].slice(1));
+  mk(48,"Sketches, II","Change the pose with the construction.",20,cards,
+    "Do ten more three-minute sketches of women's heads. This time change the pose every time: turned, tipped, three-quarter, profile. Start each with the ball and the cross. Feel the roundness and squareness in all of them.",
+    op,G3((x,i)=>sph(x,150,58,poses[i][0],poses[i][1],{w:2})));
+})();
+
+/* ===================== lesson 49 ===================== */
+(function(){
+  const f=FF(200,150,90),a=AGE(200,150,90,2),m=MUS(200,150,90);
+  const base=[f.ball,f.mid,f.brow,f.jaw,f.eyes,f.nose,f.mouth,f.ears];
+  const bone=LN("M 118 152 q 4 26 30 36 M 282 152 q -4 26 -30 36","bone",{col:ACC,w:3});
+  const jowl=LN("M 122 200 q 8 32 40 40 M 278 200 q -8 32 -40 40","jowl",{col:ACC,w:3});
+  const lumps=LN("M 140 214 q 8 6 16 0 M 244 214 q 8 6 16 0 M 168 238 q 8 6 16 0 M 216 238 q 8 6 16 0","lumps");
+  const cards=[
+    prob("You draw an old woman as a young one with lines, or as a caricature. Either way she's gone.",null),
+    why("Older faces show the anatomy. Young women keep it covered, and we please them most by doing the same. But sooner or later, it comes through.",null),
+  ].concat(fixes([
+    ["Know what happens. New forms develop in the cheeks. The muscles begin to show through the skin.",base.concat(a.slice(0,3),[m.happy,m.unhappy]),["happy","unhappy"]],
+    ["The bone comes to the surface. It is no longer so firmly covered by flesh.",base.concat([bone]),"bone"],
+    ["Pockets form between the muscles. Soft flesh stands out in little lumps and begins to drape toward the chin.",base.concat([jowl,lumps]),["jowl","lumps"]],
+    ["Be kind. Don't put too much emphasis on the aging. But ignoring it entirely loses both the character and the likeness.",base.concat(a),undefined],
+    ["There's beauty in maturity, even in old age. Character shines through. A plump grandmother is the one place where fat seems permissible.",base.concat([a[2]]),undefined]
+  ]));
+  cards[0].parts=base.concat([TXT(200,276,"a young face with lines",{fs:18,o:.6}),LN("M 150 120 h 100 M 150 130 h 100 M 170 140 h 60","lines",{o:.5})]);
+  cards[1].parts=base.concat([m.happy,m.unhappy,bone]);
+  const op=[CAP(f.ball,"A woman's head."),...base.slice(1),CAP(bone,"The bone shows through."),CAP(jowl,"The flesh sags and drapes toward the chin."),lumps,CAP(a[1],"The forms of age, kindly stated."),a[2]];
+  mk(49,"Grandmothers","Show the forms of age, kindly and honestly.",20,cards,
+    "Draw three older women from life or photographs. For each, find the bone coming through and the pockets between the muscles, then the flesh draping toward the chin. State the forms and subordinate the wrinkles. Be kind. Don't fabricate.",
+    op,G3((x,i)=>{const t=FF(x,150,58,{w:2}),aa=AGE(x,150,58,2);return [t.ball,t.mid,t.brow,t.jaw,t.eyes,t.nose,t.mouth].concat(aa.slice(0,3+i))}));
+})();
+
+/* ===================== lesson 50 ===================== */
+(function(){
+  const f=FF(200,150,90),a=AGE(200,150,90,2),a1=AGE(200,150,90,1);
+  const base=[f.ball,f.mid,f.brow,f.jaw,f.eyes,f.nose,f.mouth,f.ears];
+  const hairThin=LN("M 120 90 Q 200 50 280 90","thin",{dash:"3 6",col:ACC,w:2.4});
+  const cards=[
+    prob("You've learned a lot of separate things, and a drawing needs all of them at once.",null),
+    why("Aging is the best test. It shows whether you know the construction, the muscles, the planes and the tone, because it's the place where they all show.",null),
+  ].concat(fixes([
+    ["Start from the construction, as always: the ball, the cross, the three spaces.",[f.ball,f.mid,f.brow,f.hair,f.nb,f.chin],undefined],
+    ["Add the muscles, and where they attach. As the flesh loses firmness, they begin to show.",base.concat([a[0],a[1]]),undefined],
+    ["Then the forms of age: the cheekbones, the pouching around the eyes and the jaw, the thinning hair, the creases of the forehead. Subordinate the wrinkles.",base.concat(a).concat([hairThin]),["thin","pouch","sag"]],
+    ["Be kind in your drawings, but don't fabricate. Insincere work does your reputation harm, and that matters more than any one drawing.",base.concat(a1),undefined],
+    ["That's all fifty. The heads are the same underneath. Build the ball, find the cross, divide it, see the bones, pivot it, plane it, light it. Then draw the person in front of you.",base.concat(a),undefined]
+  ]));
+  cards[0].parts=base.concat([TXT(200,276,"all at once",{fs:18,o:.6})]);cards[1].parts=base.concat(a);
+  const op=[CAP(f.ball,"The construction."),f.mid,f.brow,f.hair,f.nb,f.chin,CAP(f.jaw,"The planes and the anatomy."),f.eyes,f.nose,f.mouth,CAP(a[1],"Then the forms of age."),a[2],hairThin,CAP(a[3],"Kindly stated.")];
+  mk(50,"The Aging Process","Put every lesson into one head.",30,cards,
+    "A final sheet. Choose an older face. In separate drawings, work out its construction, its anatomy, its planes, and then the finished head. Be kind but don't fabricate. When you've finished, paste the stages on one sheet and hang it beside the one from lesson 33.",
+    op,G3((x,i)=>{const t=FF(x,150,58,{w:2}),aa=AGE(x,150,58,i===0?0:2);return [t.ball,t.mid,t.brow,t.jaw,t.eyes,t.nose,t.mouth].concat(aa)}));
+})();
+
+/*@@end6*/
+
 /* ---------- lesson flow ---------- */
 let cur=0,step=0;
 function openLesson(n){
@@ -922,6 +1960,7 @@ function go(k){
   stopAnim();stopSpeak();
   if(k===0)playDiagram();
   if(k>=1&&k<=C){renderCard(L.cards[k-1]);if(voiceOn)playCard()}
+  if(k===last&&voiceOn)playChallenge();
   window.scrollTo(0,0);
 }
 document.querySelectorAll("[data-next]").forEach(b=>b.onclick=()=>go(step+1));
@@ -932,6 +1971,11 @@ $("replay").onclick=playDiagram;
 let speaking=false;
 try{speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>speechSynthesis.getVoices()}catch(e){}
 function stopSpeak(){try{speechSynthesis.cancel()}catch(e){}voxStop();speaking=false;$("speak").innerHTML="&#9654; Listen"}
+function chalText(L){return L.challenge+" "+L.outro}
+function playChallenge(){
+  const e=clipFor(cur+".ch",chalText(LESSONS[cur]));
+  if(e){const p=voxPlay(e.f,0,1,null);if(p&&p.catch)p.catch(()=>{})}
+}
 function playCard(){
   const e=clipFor(cur+"."+(step-1),$("ctext").textContent);
   if(!e)return false;
@@ -952,6 +1996,7 @@ $("vtog").onclick=()=>{
   if(!voiceOn){voxStop();stopSpeak();A.seg=null}
   else if(step===0)syncAudio();
   else if(step<=LESSONS[cur].cards.length)playCard();
+  else playChallenge();
 };
 setVoiceBtn();
 document.addEventListener("visibilitychange",()=>{if(document.hidden){if(A.playing)setPlaying(false);stopSpeak()}});
